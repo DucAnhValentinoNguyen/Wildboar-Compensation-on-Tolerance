@@ -1,0 +1,24 @@
+# Data Manipulation & Numerical Computing
+pandas>=2.0.0
+numpy>=1.24.0
+openpyxl>=3.1.0
+
+# Statistical Modeling & Econometrics
+statsmodels>=0.14.0
+scipy>=1.10.0
+
+# Machine Learning (LASSO, Cross-Validation, etc.)
+scikit-learn>=1.3.0
+
+# Structural Equation Modeling (SEM) & Factor Analysis
+# semopy is the most robust Python library for SEM
+semopy>=2.3.9
+factor_analyzer>=0.5.0
+
+# Data Visualization
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# Causal Inference (Double ML)
+# DoubleML is the standard library for the techniques from PSet 5
+DoubleML>=0.7.0
