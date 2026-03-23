@@ -1,5 +1,5 @@
 ---
-title: "Machine Learning in Econometrics: Final Project"
+title: "Consulting Project"
 subtitle: "The Compensation Paradox: A PLS-SEM Approach"
 author: "Duc-Anh Nguyen"
 date: "`r Sys.Date()`"
