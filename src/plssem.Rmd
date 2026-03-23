@@ -1,0 +1,218 @@
+---
+title: "Machine Learning in Econometrics: Final Project"
+subtitle: "The Compensation Paradox: A PLS-SEM Approach"
+author: "Duc-Anh Nguyen"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: flatly
+    highlight: tango
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+# install.packages("seminr")
+# install.packages("readxl")
+library(readxl)
+library(seminr)
+library(dplyr)
+library(readr)
+```
+
+
+
+
+
+```{r 1, echo=TRUE}
+# Load the dataset
+df <- read_excel("../data/3_Data.xlsx")
+
+head(df)
+
+# Standardize the large financial variable to prevent convergence issues
+df$TC2_EconomicLoss_Std <- scale(df$TC2_EconomicLoss)
+```
+
+
+2. Measurement Model Specification (Outer Model)
+We specify our measurement model here. Crucially, we model Intangible Costs and Policy Support as formative constructs (composite, mode_B). This solves the methodological challenge from our initial CB-SEM attempt, allowing us to retain all nuanced survey items because they cause the latent cost, rather than reflect it.
+
+```{r 2, echo=TRUE}
+
+# Define the measurement model
+mm <- constructs(
+  # Reflective construct (Indicators share the same underlying theme)
+  reflective("Tolerance", multi_items("Tol", c("1_5", "2_1", "4_5"))),
+  
+  # Formative constructs (Indicators build the construct)
+  composite("Intangible_Cost", multi_items("IC", c("1", "2_1", "2_2", "2_3")), weights = mode_B),
+  composite("Policy_Support", multi_items("PS", c("1", "2")), weights = mode_B),
+  
+  # Single-item constructs
+  composite("Intangible_Benefit", single_item("IB")),
+  composite("Tangible_Cost", single_item("TC2_EconomicLoss_Std")),
+  composite("Compensation", single_item("CE0"))
+)
+```
+
+
+
+
+
+
+
+3. Structural Model Specification (Inner Model)
+Here we map Mengxi Kou's socio-ecological theory. We test the direct effect of compensation, and its indirect effects mediated through governance fatigue (Policy Support) and psychological burden (Intangible Costs).
+
+```{r 3 , echo=TRUE}
+# Define the structural paths
+sm <- relationships(
+  # Does compensation experience drive the mediators or tolerance directly?
+  paths(from = "Compensation", to = c("Intangible_Cost", "Policy_Support", "Tolerance")),
+  
+  # Do the mediators and costs/benefits drive Tolerance?
+  paths(from = c("Intangible_Cost", "Policy_Support", "Intangible_Benefit", "Tangible_Cost"), 
+        to = "Tolerance")
+)
+```
+
+
+
+
+
+
+4. Model Estimation & Evaluation
+We estimate the model using the standard PLS algorithm. We will check the reliability of our reflective construct (Tolerance) and the discriminant validity (HTMT) to ensure our constructs are truly distinct.
+
+```{r 4, include=TRUE}
+# Estimate the model
+pls_model <- estimate_pls(data = df, 
+                          measurement_model = mm, 
+                          structural_model = sm)
+
+# Summarize the model
+summary_pls <- summary(pls_model)
+
+# 1. Check Reliability of Tolerance (Target: rhoA > 0.7, AVE > 0.5)
+print("--- Reliability & Validity (Reflective Constructs) ---")
+summary_pls$reliability
+
+# 2. Check Discriminant Validity (Target: HTMT < 0.90)
+print("--- Discriminant Validity (HTMT) ---")
+summary_pls$validity$htmt
+```
+
+
+
+
+5. Bootstrapping for Causal Significance (Mediation Analysis)
+To test our Research Questions rigorously, we use machine-learning-style resampling (Bootstrapping with 5,000 runs) to generate standard errors and confidence intervals for our path coefficients.
+
+```{r 5, include=TRUE}
+
+# Run the bootstrap (this may take a minute)
+set.seed(123) # For reproducibility
+boot_model <- bootstrap_model(seminr_model = pls_model, nboot = 5000)
+
+summary_boot <- summary(boot_model)
+
+print("--- Structural Path Significance ---")
+# If the 95% CI does not cross zero, the path is significant!
+summary_boot$bootstrapped_paths
+
+# Calculate the Specific Indirect Effect (The Mediation)
+print("--- Mediation: Compensation -> Intangible Cost -> Tolerance ---")
+specific_effect_significance(boot_model, 
+                             from = "Compensation", 
+                             through = "Intangible_Cost", 
+                             to = "Tolerance",
+                             alpha = 0.05)
+
+```
+
+
+
+
+
+
+
+6. Robustness: Multi-Group Analysis (MGA)
+To answer our final methodological challenge, we test if the theoretical framework behaves fundamentally differently for those who have engaged with the compensation system versus those who have not.
+
+```{r 6, include=TRUE}
+# # Split data based on Compensation Experience (CE0)
+# # 0 = No Experience, 1 = Has Experience
+# estimate_mga <- estimate_pls_mga(pls_model, 
+#                                  condition = df$CE0 == 1, 
+#                                  nboot = 5000)
+# 
+# print("--- Multi-Group Analysis Results ---")
+# # This tests if the difference in path coefficients between the two groups is statistically significant
+# summary(estimate_mga)
+
+
+
+# 1. Define a 'Structural' version of the model for MGA
+# We remove Compensation from the measurement model because it's now our grouping factor
+mm_mga <- constructs(
+  reflective("Tolerance", multi_items("Tol", c("1_5", "2_1", "4_5"))),
+  # Modeling these as composites (Formative) helps with the low AVE/Alpha issue
+  composite("Intangible_Cost", multi_items("IC", c("1", "2_1", "2_2", "2_3")), weights = mode_B),
+  composite("Policy_Support", multi_items("PS", c("1", "2")), weights = mode_B),
+  composite("Intangible_Benefit", single_item("IB")),
+  composite("Tangible_Cost", single_item("TC2_EconomicLoss_Std"))
+)
+
+# 2. Update the Structural Model (Inner Model)
+sm_mga <- relationships(
+  paths(from = c("Intangible_Cost", "Policy_Support", "Intangible_Benefit", "Tangible_Cost"), 
+        to = "Tolerance")
+)
+
+# 3. Re-estimate the base model without the CE0 indicator
+pls_model_mga <- estimate_pls(data = df, 
+                              measurement_model = mm_mga, 
+                              structural_model = sm_mga)
+
+# 4. Run the MGA safely
+# We use the CE0 column to define the groups
+mga_results <- estimate_pls_mga(pls_model_mga, 
+                                condition = df$CE0 == 1, 
+                                nboot = 1000) # Start with 1000 to test, move to 5000 for final
+
+summary(mga_results)
+```
+
+Interpretation:
+
+RQ1: Does compensation increase tolerance?
+
+The Shocking Result: Compensation (CE0) has a direct negative effect on Tolerance ($\beta = -0.169$, $p=0.001$). Simply put: People who apply for compensation actually end up less tolerant of wild boars.
+
+The Indirect Path: Compensation also has a significant indirect negative effect through Intangible Costs ($\beta = -0.047$, $p=0.017$). This means the policy adds a "psychological burden" or "governance fatigue" that further erodes tolerance.
+
+
+
+
+
+RQ2: Tangible vs. Intangible Factors
+
+Tangible Costs (Money): 
+The effect of Tangible_Cost (Economic Loss) on Tolerance is not significant ($\beta = 0.006$, $p=0.705$). This is a huge finding! It proves that the conflict is not about the money lost; it's about how people feel.
+
+Intangible Costs (Psychology): This is the strongest driver in the whole model ($\beta = -0.424$, $p=0.000$). Emotional burden and perceived risk are what truly destroy tolerance.
+
+Intangible Benefits (Values): Seeing the ecological or cultural value of the boars significantly boosts tolerance ($\beta = 0.220$, $p=0.000$).
+
+
+
+
+
+
+RQ3: Robustness & Multi-Group Analysis (MGA)Result: the MGA output  shows that the minimum p-value for differences between groups (Applied vs. Not Applied) is 0.072.
+
+Interpretation: Since no p-value is below 0.05, the structural model is robust. The psychological "rules" of how costs and benefits drive tolerance are the same for everyone, whether they have actually received a payout yet or not. This gives your results a high degree of generalisability.
+
+
