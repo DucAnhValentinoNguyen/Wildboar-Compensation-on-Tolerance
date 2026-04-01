@@ -1,0 +1,246 @@
+---
+title: "Consulting Project"
+subtitle: "The Compensation Paradox: A PLS-SEM Approach"
+author: "Duc-Anh Nguyen, Vaishali Iyer, Jihao Li"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: flatly
+    highlight: tango
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+library(readxl)
+library(seminr)
+library(dplyr)
+library(glmnet)
+```
+
+
+### 1 Data Prep
+
+```{r dataPrep}
+# Load the dataset
+df <- read_excel("../data/3_Data.xlsx")
+df <- as.data.frame(df) # Ensure standard dataframe format for seminr
+
+# Standardize the large financial variable to prevent convergence issues
+df$TC2_EconomicLoss_Std <- scale(df$TC2_EconomicLoss)
+```
+
+
+### measurement model evaluation (challenges 1b,2a,2b)
+1b and 2b: model intangible costs and policy support as formative constructs to retained nuanced survey items without relying on reflective correlations.
+
+Redundant/ non significant indicators Tol3, CA1, CA2 are removed
+
+
+2a: evaluate Contruct Validity AVE and discriminant validity HTMT
+```{r 1b2a2b}
+# Define the base measurement model (including the interaction term for later)
+mm_base <- constructs(
+  reflective("Tolerance",          multi_items("Tol", c("1_5", "2_1", "4_5"))),
+  composite("Intangible_Cost",     multi_items("IC", c("1", "2_1", "2_2", "2_3")), weights = mode_B),
+  composite("Policy_Support",      multi_items("PS", c("1", "2")), weights = mode_B),
+  composite("Intangible_Benefit",  single_item("IB")),
+  composite("Tangible_Cost",       single_item("TC2_EconomicLoss_Std")),
+  composite("Compensation",        single_item("CE0")),
+  
+  # Prepare for RQ2 Moderation:
+  interaction_term(iv = "Compensation", moderator = "Intangible_Cost", method = two_stage)
+)
+
+# Define a simple structural model just to extract measurement validity
+sm_simple <- relationships(
+  paths(from = c("Compensation", "Intangible_Cost", "Policy_Support", "Intangible_Benefit", "Tangible_Cost"), 
+        to = "Tolerance")
+)
+
+# Estimate base model
+pls_model_base <- estimate_pls(data = df, measurement_model = mm_base, structural_model = sm_simple)
+summary_base <- summary(pls_model_base)
+
+print("=== Construct Reliability & Validity (Challenge 2a) ===")
+summary_base$reliability
+
+print("=== Discriminant Validity HTMT (Challenge 2a) ===")
+summary_base$validity$htmt
+
+```
+
+
+
+### RQ1: direct and meidated effects
+testing the specific indirect pathway: conpensation -> intangible costs -> tolerance
+```{r }
+# Define structural model for mediation
+sm_mediation <- relationships(
+  paths(from = "Compensation", to = c("Intangible_Cost", "Policy_Support", "Tolerance")),
+  paths(from = c("Intangible_Cost", "Policy_Support", "Intangible_Benefit", "Tangible_Cost"), 
+        to = "Tolerance")
+)
+
+pls_model_med <- estimate_pls(data = df, measurement_model = mm_base, structural_model = sm_mediation)
+set.seed(123)
+boot_model_med <- bootstrap_model(seminr_model = pls_model_med, nboot = 5000)
+
+print("=== RQ1: Direct Structural Paths ===")
+summary(boot_model_med)$bootstrapped_paths
+
+print("=== RQ1: Bootstrapped Mediation (Compensation -> Intangible Cost -> Tolerance) ===")
+specific_effect_significance(boot_model_med, 
+                             from = "Compensation", 
+                             through = "Intangible_Cost", 
+                             to = "Tolerance",
+                             alpha = 0.05)
+
+```
+
+
+
+### RQ2 and 1a: moderation and role of costs/enefits
+RQ2: do (in)tangible costs interact with compensation experience?
+
+1a: improve the structural model by adding the interaction term compensation x Intangible_cost
+```{r }
+# Define the Structural Model WITH Moderation
+sm_moderation <- relationships(
+  paths(from = c("Compensation", "Intangible_Cost", "Intangible_Benefit", "Policy_Support"), 
+        to = "Tolerance"),
+  paths(from = "Compensation", to = c("Intangible_Cost", "Policy_Support")),
+  
+  # THE MODERATION PATH
+  paths(from = "Compensation*Intangible_Cost", to = "Tolerance")
+)
+
+# Estimate and Bootstrap the new model using path_weighting for interactions
+pls_model_mod <- estimate_pls(data = df, 
+                              measurement_model = mm_base, 
+                              structural_model = sm_moderation,
+                              inner_weights = path_weighting)
+
+boot_model_mod <- bootstrap_model(pls_model_mod, nboot = 5000)
+
+print("=== RQ2: FINAL MODERATION RESULTS ===")
+summary(boot_model_mod)$bootstrapped_paths
+
+```
+
+
+### 3a: model evaluation metrics
+
+
+```{r }
+
+summary_mod <- summary(pls_model_mod)
+
+print("=== Effect Sizes f^2 (Challenge 3a) ===")
+# f^2 > 0.02 is small, > 0.15 is medium, > 0.35 is large
+summary_mod$fSquare
+
+print("=== Model Fit SRMR (Challenge 3a) ===")
+# Safe extraction for two-stage moderation models
+qc <- summary_mod$quality_criteria
+if (!is.null(qc$fit$srmr)) {
+  cat("Model Fit (SRMR):", round(qc$fit$srmr, 4), "\n")
+} else {
+  cat("Note: Global SRMR aggregation not available for this two-stage model.\n")
+}
+
+print("=== Predictive Relevance Q^2 (Challenge 3a) ===")
+# Forced to 1 core to prevent parallelization 'cl' error
+predict_results <- predict_pls(pls_model_mod, noFolds = 10, cores = 1) 
+print(summary(predict_results))
+```
+
+
+### RQ3 & Challenge 3b: 
+A formal multi-group analysis (MGA) to test whether differences between the compensation and non-compensation groups are statistically significant.
+```{r }
+# Define a Structural model for MGA (Compensation is the grouping variable, so it is removed from the model)
+mm_mga <- constructs(
+  reflective("Tolerance", multi_items("Tol", c("1_5", "2_1", "4_5"))),
+  composite("Intangible_Cost", multi_items("IC", c("1", "2_1", "2_2", "2_3")), weights = mode_B),
+  composite("Policy_Support", multi_items("PS", c("1", "2")), weights = mode_B),
+  composite("Intangible_Benefit", single_item("IB")),
+  composite("Tangible_Cost", single_item("TC2_EconomicLoss_Std"))
+)
+
+sm_mga <- relationships(
+  paths(from = c("Intangible_Cost", "Policy_Support", "Intangible_Benefit", "Tangible_Cost"), 
+        to = "Tolerance")
+)
+
+pls_model_mga <- estimate_pls(data = df, measurement_model = mm_mga, structural_model = sm_mga)
+
+# Run the MGA
+mga_results <- estimate_pls_mga(pls_model_mga, condition = df$CE0 == 1, nboot = 5000)
+
+print("=== RQ3: Multi-Group Analysis Results ===")
+summary(mga_results)
+
+```
+
+### Robustness: Double Machine Learning (DML)
+Further addressing RQ3, we use Neyman-Orthogonal scores via LASSO to control for high-dimensional demographic and agricultural confounders.
+
+```{r }
+# Create single Tolerance vector
+df$Tolerance_Score <- rowMeans(df[, c("Tol1_5", "Tol2_1", "Tol4_5")], na.rm = TRUE)
+
+Y_dml <- df$Tolerance_Score
+D_dml <- df$CE0
+
+covariates <- df %>% 
+  select(Q4_Gender, Q5_Age, Q6_Education, Q7_HouseholdPop, Q8_AnnualIncome, 
+         Q9_AgriProportion, Q11_TotalArea, Q13_TotalLivestock, 
+         Q14_CropAsset, Q14_LivestockAsset, TC2_EconomicLoss_Std)
+
+X_dml <- model.matrix(~ .^2, data = covariates)
+idx_control <- which(D_dml == 0)
+idx_treated <- which(D_dml == 1)
+
+set.seed(123)
+lasso_mu0 <- cv.glmnet(X_dml[idx_control, ], Y_dml[idx_control], alpha = 1)
+mu0hat <- predict(lasso_mu0, s = "lambda.min", newx = X_dml)
+
+lasso_mu1 <- cv.glmnet(X_dml[idx_treated, ], Y_dml[idx_treated], alpha = 1)
+mu1hat <- predict(lasso_mu1, s = "lambda.min", newx = X_dml)
+
+lasso_p <- cv.glmnet(X_dml, D_dml, family = "binomial", alpha = 1)
+Phat <- predict(lasso_p, s = "lambda.min", newx = X_dml, type = "response")
+Phat <- pmax(pmin(Phat, 0.99), 0.01)
+
+ATE_scores <- (mu1hat - mu0hat) + 
+              (D_dml * (Y_dml - mu1hat) / Phat) - 
+              ((1 - D_dml) * (Y_dml - mu0hat) / (1 - Phat))
+
+ATE_estimate <- mean(ATE_scores)
+ATE_se <- sd(ATE_scores) / sqrt(length(ATE_scores))
+t_stat <- ATE_estimate / ATE_se
+p_val <- 2 * (1 - pnorm(abs(t_stat)))
+
+print("=== Double Machine Learning (DML) Robustness Check ===")
+cat("ATE of Compensation on Tolerance:", round(ATE_estimate, 4), "\n")
+cat("P-value:", round(p_val, 4), "\n")
+
+```
+
+
+
+```{r }
+
+
+```
+
+
+
+```{r }
+
+
+```
+
+
