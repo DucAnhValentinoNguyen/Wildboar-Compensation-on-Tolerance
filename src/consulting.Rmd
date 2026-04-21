@@ -23,7 +23,6 @@ library(glmnet)
 This analysis (first edition) tries to answer the following questions and also to leverage all of our modeling choices:
 
 ### Research Questions:
-
 1. Does compensation for wild boar damage have a direct effect on tolerance toward wild boar, or is its influence mediated by other social and psychological factors? 
 2. What roles do tangible costs, intangible costs, and intangible benefits play in shaping tolerance, and how do these factors interact with compensation experience? 
 3. How robust are these relationships under different model specifications and across groups with and without compensation experience?
@@ -31,7 +30,6 @@ This analysis (first edition) tries to answer the following questions and also t
 
 
 ### Methodological Challenges:
-
 1. Model performance and specification 
   a. How can the structural model be improved (e.g. path structure, mediation, moderation)?  
   b. Should certain constructs be merged, re-specified, or modeled formatively vs. reflectively? 
@@ -56,7 +54,7 @@ This analysis (first edition) tries to answer the following questions and also t
 
 ```{r dataPrep}
 # Load the dataset
-df <- read_excel("3_Data.xlsx")
+df <- read_excel("../data/3_Data.xlsx")
 df <- as.data.frame(df) # Ensure standard dataframe format for seminr
 
 # Standardize the large financial variable to prevent convergence issues
@@ -195,41 +193,6 @@ This tests if the "rules of psychology" change when money is involved. We are ex
 
 
 
-########################################################################
-
-
-
-
-
-
-
-### RQ3 & Challenge 3a: Robustness and Predictive Quality
-Challenge 3a: Assessing the model quality via $R^2$ and $Q^2$.
-```{r rq3 3a}
-# --- Challenge 3a: Explanatory Power (R-Squared) ---
-
-sum_mod <- summary(pls_rq2)
-
-# Extract R2 and Adjusted R2 for Tolerance
-r2_tolerance     <- sum_mod$paths[1, "Tolerance"]
-adj_r2_tolerance <- sum_mod$paths[2, "Tolerance"]
-
-cat("=== RQ3: Model Quality Metrics ===\n")
-cat("R-Squared for Tolerance: ", round(r2_tolerance, 4), "\n")
-cat("Adjusted R-Squared:    ", round(adj_r2_tolerance, 4), "\n")
-
-
-
-```
-Note: Due to a technical bug in the seminr parallel cluster engine regarding interactions, we report in-sample R-Squared as the primary indicator of explanatory power.
-
-Interpretation & Methodological Note:
-
-This evaluates the explanatory power of our Inner Model. It answers the question: How much of a resident's overall tolerance can be explained by our selected variables? In complex human-wildlife behavioral studies, an R-Squared value above 0.25 to 0.30 is considered a robust, moderate finding (according to Mengxi). It proves that the framework is capturing a very real, significant portion of human decision-making.
-
-
-
-
 
 ########################################################################
 
@@ -264,7 +227,7 @@ The Multi-Group Analysis serves as a structural robustness check. It verifies if
 
 
 
-## 8. Spatial Robustness: County-Level MGA 
+### Spatial Robustness: County-Level MGA 
 
 **Objective:** To determine if the socio-ecological drivers of tolerance—and the negative impact of compensation—are universal across different geographical regions, or if they are localized anomalies. We test this by comparing residents of Baoxing County to Qingchuan County.
 
@@ -301,20 +264,18 @@ summary(mga_spatial)
 Interpretation & Methodological Note:
 This spatial Multi-Group Analysis (MGA) acts as our final external validity check. Human-wildlife conflict is inherently geographical—different counties have distinct topographies, boar population densities, and local government efficiencies.
 
+The Verdict: A Geographic "Win" for the Theory. Looking at our pls_mga_p values, the median is 0.672 and the mean is 0.511. This means that for almost every relationship in your model, there is no statistically significant difference between the two counties (since $p > 0.05$ for most paths). 
 
+What it means: The "Compensation Paradox" is a universal psychological rule in this region. Whether a resident lives in Baoxing or Qingchuan, the way compensation, costs, and benefits drive their tolerance is nearly identical. 
 
-
-
-1. Spatial Robustness: Baoxing vs. QingchuanThe Verdict: A Geographic "Win" for the TheoryLooking at your pls_mga_p values, the median is 0.654 and the mean is 0.506. This means that for almost every relationship in your model, there is no statistically significant difference between the two counties (since $p > 0.05$ for most paths). What it means: The "Compensation Paradox" is a universal psychological rule in this region. Whether a resident lives in Baoxing or Qingchuan, the way compensation, costs, and benefits drive their tolerance is nearly identical. The one "Nudge": You have one $p$-value at 0.040. This suggests that one specific path (likely the impact of Intangible Costs) might be slightly stronger in one county than the other, but overall, the model is geographically stable. 
-
-
-
+Note: we have one $p$-value at 0.040. This suggests that one specific path (likely the impact of Intangible Costs) might be slightly stronger in one county than the other, but overall, the model is geographically stable. 
 
 
 
 
 
-## 9. Administrative Robustness: Inside vs. Outside National Park MGA 
+
+### Administrative Robustness: Inside vs. Outside National Park MGA 
 
 **Objective:** To test if the strict conservation regulations and distinct governance structures inside the Giant Panda National Park fundamentally alter how residents form their tolerance toward wild boars, compared to residents living outside the park boundaries.
 
@@ -333,25 +294,19 @@ summary(mga_np)
 Interpretation & Methodological Note:
 This Multi-Group Analysis tests the boundaries of "Governance Fatigue." Because residents living inside the Giant Panda National Park face stricter land-use regulations and different wildlife management protocols, their relationship with "Policy Support" may function differently than those outside the park.
 
+The Verdict: we have a $p$-value of 0.005471.  That is highly significant. It proves that the "rules of the game" change fundamentally once you cross the National Park boundary. The Difference in "Pain": Look at the group1_beta (Inside) vs. group2_beta (Outside). 
 
+"Inside" group has a beta of -0.5760, while the "Outside" group is -0.4147. 
+What it means: The negative drivers of tolerance (like Intangible Costs or the policy backfire) are significantly more intense for people living inside the park. 
 
-
- Administrative Robustness: Inside vs. Outside the ParkThe Verdict: The "Pressure Cooker" EffectThis is where your analysis gets really exciting. You have a $p$-value of 0.005471.  That is highly significant. It proves that the "rules of the game" change fundamentally once you cross the National Park boundary. The Difference in "Pain": Look at the group1_beta (Inside) vs. group2_beta (Outside). Your "Inside" group has a beta of -0.5760, while the "Outside" group is -0.4147. What it means: The negative drivers of tolerance (like Intangible Costs or the policy backfire) are significantly more intense for people living inside the park. The Interpretation: Living inside the park is a "pressure cooker." Because these residents face stricter regulations and more frequent boar encounters, the bureaucratic friction of the compensation policy hurts their tolerance much more than it hurts their neighbors living outside the fence
+The Interpretation:Because these residents face stricter regulations and more frequent boar encounters, the bureaucratic friction of the compensation policy hurts their tolerance much more than it hurts their neighbors living outside the fence
  
- 
- 
- Conclusion
- 
- "Our model is geographically robust (stable across counties) but administratively sensitive. We have causal evidence that the National Park's strict governance structure amplifies the negative impact of the compensation paradox, making residents inside the park significantly less tolerant than those outside."
 
 
 
 
 
-
-
-
-### 10. Alternative Modeling: Simplified Baseline Model
+### Alternative Modeling: Simplified Baseline Model
 
 Why we do this: In human-wildlife conflict, the old, traditional assumption was simply: "If wildlife causes economic damage, tolerance drops. If we pay people compensation, tolerance goes up." By fitting a baseline model that only looks at Tangible Costs and Compensation, we can compare its $R^2$ to your full socio-ecological model. If your full model has a much higher $R^2$, you have proven that Mengxi's complex psychological theory is necessary to understand the situation.
 
@@ -386,52 +341,13 @@ cat("Full Model R-Squared: 0.3230 \n") # From our earlier RQ2 model
 cat("Improvement: ", round((0.3230 - as.numeric(r2_base)) * 100, 2), "%\n")
 ```
 
-Interpretation: "The simplified baseline model—relying solely on direct economic damage and compensation participation—explains a vastly inferior percentage of the variance in Tolerance compared to our full model. This massive jump in $R^2$ provides strong empirical justification for Mengxi Kou’s socio-ecological framework: human-wildlife coexistence cannot be predicted by economics alone; it is fundamentally driven by intangible psychological costs and benefits."
+Interpretation: The simplified baseline model—relying solely on direct economic damage and compensation participation—explains a vastly inferior percentage of the variance in Tolerance compared to our full model. This massive jump in $R^2$ provides strong empirical justification for Mengxi Kou’s socio-ecological framework: human-wildlife coexistence cannot be predicted by economics alone; it is fundamentally driven by intangible psychological costs and benefits.
 
 
 
 
 
 
-### 11. Sensitivity Check: Measurement Specification (Reflective vs. Formative)
-Sensitivity Check: Formative vs. Reflective Specification
-
-Why we do this: Your project prompt explicitly asks: "Should certain constructs be re-specified, or modeled formatively vs. reflectively?" Reviewers will absolutely ask why you modeled Intangible_Cost as formative (mode_B). To defend your choice, you run a sensitivity check where you force it to be reflective (mode_A). We expect this model to fail its reliability checks, which perfectly proves that your original formative choice was the correct one.
-
-
-```{r sensitivityCheck}
-# Objective: Prove that Intangible Cost is a formative construct by demonstrating 
-# that a reflective specification fails standard reliability thresholds (AVE < 0.5).
-
-# 1. Alternative Measurement Model (Intangible Cost forced to Reflective)
-mm_sens <- constructs(
-  reflective("Tolerance",          multi_items("Tol", c("1_5", "2_1", "4_5"))),
-  # Notice we are using 'reflective' here instead of 'composite' with mode_B
-  reflective("Intangible_Cost",    multi_items("IC", c("1", "2_1", "2_2", "2_3"))),
-  composite("Policy_Support",      multi_items("PS", c("1", "2")), weights = mode_B),
-  composite("Intangible_Benefit",  single_item("IB")),
-  composite("Tangible_Cost",       single_item("TC2_EconomicLoss_Std")),
-  composite("Compensation",        single_item("CE0"))
-)
-
-# 2. Use the same structural model from RQ1
-sm_sens <- relationships(
-  paths(from = "Compensation", to = c("Intangible_Cost", "Policy_Support", "Tolerance")),
-  paths(from = c("Intangible_Cost", "Policy_Support", "Intangible_Benefit", "Tangible_Cost"), to = "Tolerance")
-)
-
-# 3. Estimate Sensitivity Model
-pls_sens <- estimate_pls(data = df, measurement_model = mm_sens, structural_model = sm_sens)
-sum_sens <- summary(pls_sens)
-
-cat("=== Sensitivity Check: Reflective Reliability ===\n")
-print(sum_sens$reliability)
-```
-
-
-
-Interpretation for your report:
-"To assess measurement specification robustness, we subjected the 'Intangible Cost' construct to a sensitivity check by modeling it reflectively rather than formatively. As expected, the Average Variance Extracted (AVE) fell significantly below the 0.50 threshold. This confirms our theoretical assumption: fear of crop loss, fear for personal safety, and general anxiety are independent stressors that combine to form an overall psychological burden, rather than manifestations of a single underlying trait. Therefore, our original formative specification (mode_B) is both statistically necessary and theoretically robust."
 
 
 
@@ -468,17 +384,86 @@ Traditional regressions are vulnerable to omitted variable bias (e.g., critics a
 
 
 
+########################################################################
+
+
+### RQ3 & Challenge 3a: Robustness and Predictive Quality
+Challenge 3a: Assessing the model quality via $R^2$ and $Q^2$.
+```{r rq3 3a}
+# --- Challenge 3a: Explanatory Power (R-Squared) ---
+
+sum_mod <- summary(pls_rq2)
+
+# Extract R2 and Adjusted R2 for Tolerance
+r2_tolerance     <- sum_mod$paths[1, "Tolerance"]
+adj_r2_tolerance <- sum_mod$paths[2, "Tolerance"]
+
+cat("=== RQ3: Model Quality Metrics ===\n")
+cat("R-Squared for Tolerance: ", round(r2_tolerance, 4), "\n")
+cat("Adjusted R-Squared:    ", round(adj_r2_tolerance, 4), "\n")
+
+
+
+```
+Note: Due to a technical bug in the seminr parallel cluster engine regarding interactions, we report in-sample R-Squared as the primary indicator of explanatory power.
+
+Interpretation & Methodological Note:
+
+This evaluates the explanatory power of our Inner Model. It answers the question: How much of a resident's overall tolerance can be explained by our selected variables? In complex human-wildlife behavioral studies, an R-Squared value above 0.25 to 0.30 is considered a robust, moderate finding (according to Mengxi). It proves that the framework is capturing a very real, significant portion of human decision-making.
 
 
 
 
 
+
+
+
+### Sensitivity Check: Measurement Specification (Reflective vs. Formative)
+
+Why we do this: Should certain constructs be re-specified, or modeled formatively vs. reflectively?
+To answer why we model Intangible_Cost as formative (mode_B), we run a sensitivity check where we force it to be reflective (mode_A). We expect this model to fail its reliability checks, which perfectly proves that our original formative choice was the correct one.
+
+
+```{r sensitivityCheck}
+# Objective: Prove that Intangible Cost is a formative construct by demonstrating 
+# that a reflective specification fails standard reliability thresholds (AVE < 0.5).
+
+# 1. Alternative Measurement Model (Intangible Cost forced to Reflective)
+mm_sens <- constructs(
+  reflective("Tolerance",          multi_items("Tol", c("1_5", "2_1", "4_5"))),
+  # Notice we are using 'reflective' here instead of 'composite' with mode_B
+  reflective("Intangible_Cost",    multi_items("IC", c("1", "2_1", "2_2", "2_3"))),
+  composite("Policy_Support",      multi_items("PS", c("1", "2")), weights = mode_B),
+  composite("Intangible_Benefit",  single_item("IB")),
+  composite("Tangible_Cost",       single_item("TC2_EconomicLoss_Std")),
+  composite("Compensation",        single_item("CE0"))
+)
+
+# 2. Use the same structural model from RQ1
+sm_sens <- relationships(
+  paths(from = "Compensation", to = c("Intangible_Cost", "Policy_Support", "Tolerance")),
+  paths(from = c("Intangible_Cost", "Policy_Support", "Intangible_Benefit", "Tangible_Cost"), to = "Tolerance")
+)
+
+# 3. Estimate Sensitivity Model
+pls_sens <- estimate_pls(data = df, measurement_model = mm_sens, structural_model = sm_sens)
+sum_sens <- summary(pls_sens)
+
+cat("=== Sensitivity Check: Reflective Reliability ===\n")
+print(sum_sens$reliability)
+```
+Interpretation & Methodological Note:
+
+To assess measurement specification robustness, we subjected the 'Intangible Cost' construct to a sensitivity check by modeling it reflectively rather than formatively. As expected, the Average Variance Extracted (AVE) fell significantly below the 0.50 threshold. This confirms our theoretical assumption: fear of crop loss, fear for personal safety, and general anxiety are independent stressors that combine to form an overall psychological burden, rather than manifestations of a single underlying trait. Therefore, our original formative specification (mode_B) is both statistically necessary and theoretically robust.
 
 
 
 
 ## Conclusion
 Our integrated PLS-SEM and Double Machine Learning analysis confirms the Compensation Paradox in Giant Panda National Park. Current financial payouts do not buy coexistence. Instead, the bureaucratic process of the compensation policy exacerbates residents' intangible costs and creates 'institutional disillusionment,' which actively destroys tolerance. To improve conservation outcomes, future policies must focus on reducing the psychological and bureaucratic friction of the compensation process, rather than simply adjusting the financial payouts.
+
+Our model is geographically robust (stable across counties) but administratively sensitive. We have causal evidence that the National Park's strict governance structure amplifies the negative impact of the compensation paradox, making residents inside the park significantly less tolerant than those outside.
+
 
 ## TL;DR 
 1. Data Preparation & Measurement Model: Before testing any theories, the report standardises large financial numbers (like crop loss in Yuan) so they don't break the statistical algorithms. Then, it validates the survey using the Outer Model.
@@ -513,6 +498,3 @@ Interpretation: This is a rigorous robustness check: It proves that while compen
 6. Robustness: Double Machine Learning: The final section abandons standard SEM and uses an advanced AI algorithm (LASSO Double Machine Learning) to control for 11 different confounding variables (age, gender, farm size, income).
 
 Interpretation: Critics might argue: "The policy isn't bad; it's just that only angry, poor, older farmers apply for compensation." Double Machine Learning mathematically eliminates all of that demographic bias. By outputting a negative Average Treatment Effect (ATE), it proves strict causality: the compensation policy itself is actively harming human-wildlife coexistence, regardless of who the farmer is.
-
-
-
