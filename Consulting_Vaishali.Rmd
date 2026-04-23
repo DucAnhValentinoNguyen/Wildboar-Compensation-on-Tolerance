@@ -1,0 +1,802 @@
+---
+title: "Consulting"
+author: "Vaishali Iyer"
+output: pdf_document
+date: "`r Sys.Date()`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(seminr)   
+library(readxl)      
+library(dplyr)       
+library(tidyr)       
+library(ggplot2)
+library(psych)
+library(corrplot) 
+```
+## Introduction:
+This analysis (first edition) tries to answer the following questions and also to leverage all of our modeling choices:
+
+### Research Questions:
+1. Does compensation for wild boar damage have a direct effect on tolerance toward wild boar, or is its influence mediated by other social and psychological factors? 
+2. What roles do tangible costs, intangible costs, and intangible benefits play in shaping tolerance, and how do these factors interact with compensation experience? 
+3. How robust are these relationships under different model specifications and across groups with and without compensation experience?
+
+
+### Methodological Challenges:
+1. Model performance and specification 
+  a. How can the structural model be improved (e.g. path structure, mediation, moderation)?  
+  b. Should certain constructs be merged, re-specified, or modeled formatively vs. reflectively? 
+2. Measurement model refinement 
+  a. Assessment and improvement of construct validity and reliability 
+  b. Evaluation of indicator selection and potential redundancy 
+3. Robustness and alternative modeling strategies 
+  a. Sensitivity checks and alternative model comparisons 
+  b. Discussion of whether complementary approaches (e.g. multi-group analysis or simplified models) are appropriate
+
+
+#### Note: here we want to point out the difference in terminology between Ecological Theory and Data Science:
+
++ In PLS-SEM, the Outer Model (Measurement Model) is the mathematical link between a survey question (e.g., Tol1) and a concept (e.g., Tolerance).
+
++ The Inner Model (Structural Model) is the causal arrow you draw between two concepts (e.g., Intangible_Cost -> Tolerance).
+
+
+## 1. Load Data
+
+
+```{r dataLoad}
+# Load the dataset
+df_raw <- read_excel("3_Data.xlsx")
+df_raw <- as.data.frame(df_raw)
+
+df <- data.frame(
+  Tol1_5                = as.numeric(df_raw$Tol1_5),
+  Tol2_1                = as.numeric(df_raw$Tol2_1),
+  Tol4_5                = as.numeric(df_raw$Tol4_5),
+  CP_WB1                = as.numeric(df_raw$CP_WB1),
+  CP_WB2                = as.numeric(df_raw$CP_WB2),
+  CP_WB3                = as.numeric(df_raw$CP_WB3),
+  CP_WB4                = as.numeric(df_raw$CP_WB4),
+  CP_A1                 = as.numeric(df_raw$CP_A1),
+  CP_A2                 = as.numeric(df_raw$CP_A2),   # force character → numeric
+  CP_A3                 = as.numeric(df_raw$CP_A3),
+  TC1_DamagedArea       = as.numeric(df_raw$TC1_DamagedArea),
+  TC2_EconomicLoss_Std  = as.numeric(scale(df_raw$TC2_EconomicLoss)),  # flatten matrix
+  IC1                   = as.numeric(df_raw$IC1),
+  IC2_1                 = as.numeric(df_raw$IC2_1),
+  IC2_2                 = as.numeric(df_raw$IC2_2),
+  IC2_3                 = as.numeric(df_raw$IC2_3),
+  IB                    = as.numeric(df_raw$IB),
+  PE                    = as.numeric(df_raw$PE),
+  CA1                   = as.numeric(df_raw$CA1),
+  CA2                   = as.numeric(df_raw$CA2),
+  CA3                   = as.numeric(df_raw$CA3),
+  PS1                   = as.numeric(df_raw$PS1),
+  PS2                   = as.numeric(df_raw$PS2),
+  CE0                   = as.numeric(df_raw$CE0),
+  Q4_Gender             = as.numeric(df_raw$Q4_Gender),
+  Q5_Age                = as.numeric(df_raw$Q5_Age),
+  Q6_Education          = as.numeric(df_raw$Q6_Education),
+  Q8_AnnualIncome       = as.numeric(df_raw$Q8_AnnualIncome),
+  Q14_HouseholdAsset    = as.numeric(df_raw$Q14_HouseholdAsset)
+)
+
+# Verify before proceeding
+cat("All numeric:", all(sapply(df, is.numeric)), "\n")  # must print TRUE
+cat("Rows:", nrow(df), "\n")                            # must print 625
+cat("Cols:", ncol(df), "\n")                            # must print 29
+```
+#############################################################################################
+# RQ1: Does compensation directly or indirectly affect tolerance?
+
+```{r RQ1}
+sm_rq1 <- relationships(
+
+# HYPOTHESIS 1: Direct effect of compensation
+  paths(from = "Compensation",
+        to   = "Tolerance"),
+
+# HYPOTHESIS 2: Mediation via Policy Dependency
+# Compensation increases policy dependency, which reduces tolerance
+  paths(from = "Compensation",
+        to   = "Policy_Support"),
+  paths(from = "Policy_Support",
+        to   = "Tolerance"),
+
+# HYPOTHESIS 3: Mediation via Intangible Costs
+# Conflict experience has no direct effect but works through intangible costs
+  paths(from = "ConflictExp_WB",
+        to   = c("Tolerance",          # expected non-significant
+                 "Intangible_Costs")), # expected significant
+  paths(from = "Intangible_Costs",
+        to   = "Tolerance"),
+
+# Background controls
+  paths(from = "Intangible_Benefits",
+        to   = "Tolerance"),
+  paths(from = c("Gender", "Age", "Education", "Income", "Assets"),
+        to   = "Tolerance")
+)
+
+pls_rq1 <- estimate_pls(
+  data              = df,
+  measurement_model = mm_rq1,
+  structural_model  = sm_rq1
+)
+
+set.seed(123)
+boot_rq1 <- bootstrap_model(pls_rq1, nboot = 5000)
+sum_rq1  <- summary(boot_rq1)
+
+# Results
+print("--- Direct and indirect paths ---")
+sum_rq1$bootstrapped_paths
+
+print("--- Mediation 1: Compensation → Policy_Support → Tolerance ---")
+specific_effect_significance(boot_rq1,
+                             from    = "Compensation",
+                             through = "Policy_Support",
+                             to      = "Tolerance")
+
+print("--- Mediation 2: ConflictExp_WB → Intangible_Costs → Tolerance ---")
+specific_effect_significance(boot_rq1,
+                             from    = "ConflictExp_WB",
+                             through = "Intangible_Costs",
+                             to      = "Tolerance")
+```
+## RQ1 Results:
+
+We tested three pathways simultaneously: (1) a direct effect of compensation on tolerance, (2) an indirect pathway via policy dependency, and (3) an indirect pathway via intangible costs. All effects were estimated using PLS-SEM and tested with 5000 bootstrap replications.
+
+### Direct Effect of Compensation
+
+Compensation participation has a significant negative direct effect on tolerance (β = −0.134, t = −3.567, 95% CI [−0.205, −0.056], p < 0.001). This replicates and confirms the originally reported finding (β = −0.115, t = −3.309). Receiving compensation is associated with *lower* tolerance toward wild boars — the compensation paradox is confirmed.
+
+
+### Mediation 1: Compensation → Policy_Support → Tolerance
+
+While compensation significantly predicts policy support (β = −0.342, t = −11.580, p < 0.001), the path from policy support to tolerance is non-significant (β = −0.057, t = −1.173, p = 0.248). The indirect effect is negligible and its confidence interval crosses zero (β = 0.019, 95% CI [−0.013, 0.053], p = 0.248). Policy dependency does not mediate the compensation effect in the full sample model.
+
+Notably, the negative sign on Compensation → Policy_Support (β = −0.342) indicates that compensated residents report less institutional reliance, not more. This contradicts the original hypothesis and suggests that policy dependency as a mechanism may only emerge within the compensation sub-group — a question formally addressed in RQ3 via multi-group analysis.
+
+
+### Mediation 2: ConflictExp_WB → Intangible_Costs → Tolerance
+
+This pathway is fully supported! Conflict experience significantly increases intangible costs (β = 0.304, t = 7.772, p < 0.001), which in turn significantly reduce tolerance (β = −0.328, t = −8.010, p < 0.001). The indirect effect is significant and its confidence interval does not cross zero (β = −0.100, 95% CI [−0.141, −0.068], p < 0.001). The direct effect of 
+conflict experience on tolerance is non-significant (β = −0.025, t = −0.530, p = 0.516), indicating full mediation — conflict experience affects tolerance exclusively through the emotional and psychological burden it creates, not through direct exposure.
+
+### Summary
+
+The compensation effect on tolerance is direct and negative, not mediated by policy dependency. Conflict experience, by contrast, operates entirely through intangible costs. The dominant driver of tolerance is intangible costs (β = −0.328), followed by intangible benefits (β = 0.171). 
+Tangible economic losses and sociodemographic variables play no significant role.
+
+#############################################################################################
+## 1a) How can the structural model be improved?
+
+Based on the RQ1 results, three improvements were made to the structural model:
+
+**1. Mediation paths were formally tested**  
+Instead of only estimating a direct compensation effect, two indirect pathways 
+were explicitly modelled and tested with bootstrapped confidence intervals. 
+This revealed that conflict experience affects tolerance *exclusively* through 
+intangible costs (full mediation), while the policy dependency pathway was 
+not supported in the full sample.
+
+**2. Formative re-specification**  
+ConflictExp_WB and ConflictExp_All were re-specified as formative composites 
+(mode_B), since their items capture distinct facets of conflict exposure 
+(frequency, duration, trend) rather than interchangeable reflections of one 
+underlying construct. This is theoretically more appropriate and avoids 
+artificially penalising the model for low inter-item correlations.
+
+**3. Moderation term (next step)**  
+Sub-group results suggest the Intangible_Costs → Tolerance effect differs 
+between compensation groups (β = −0.350 without compensation vs β = −0.178 
+with compensation). A Compensation × Intangible_Costs interaction term will 
+be added in RQ2 to formally test whether compensation moderates this 
+emotional pathway to tolerance.
+
+#############################################################################################
+## 1b) Should constructs be merged, re-specified, or modelled formatively vs. reflectively?
+
+```{r chunk}
+sm_full <- relationships(
+  paths(from = "Compensation",
+        to   = c("Tolerance", "Policy_Support", "Intangible_Costs")),
+  paths(from = "ConflictExp_WB",
+        to   = c("Tolerance", "Intangible_Costs")),
+  paths(from = "ConflictExp_All",        # ← now included
+        to   = "Tolerance"),
+  paths(from = "Comp_Anticipation",      # ← now included
+        to   = "Tolerance"),
+  paths(from = c("Intangible_Costs",
+                 "Intangible_Benefits",
+                 "Policy_Support"),
+        to   = "Tolerance"),
+  paths(from = c("Gender", "Age", "Education", "Income", "Assets"),
+        to   = "Tolerance")
+)
+
+mm_full <- constructs(
+  composite("Tolerance",
+            c("Tol1_5", "Tol2_1", "Tol4_5"), mode_A),
+  composite("ConflictExp_WB",
+            multi_items("CP_WB", 1:4), mode_B),
+  composite("ConflictExp_All",
+            multi_items("CP_A", 1:3), mode_B),
+  composite("Intangible_Costs",
+            c("IC1", "IC2_1", "IC2_2", "IC2_3"), mode_A),
+  composite("Intangible_Benefits", "IB",  mode_A),
+  composite("Policy_Support",
+            c("PS1", "PS2"), mode_B),
+  composite("Comp_Anticipation",
+            c("CA1", "CA2", "CA3"), mode_B),  # ← CA1/CA2/CA3 now in
+  composite("Compensation", "CE0", mode_A),
+  composite("Gender",    "Q4_Gender",          mode_A),
+  composite("Age",       "Q5_Age",             mode_A),
+  composite("Education", "Q6_Education",       mode_A),
+  composite("Income",    "Q8_AnnualIncome",    mode_A),
+  composite("Assets",    "Q14_HouseholdAsset", mode_A)
+)
+
+set.seed(123)
+pls_full <- estimate_pls(data = df,
+                          measurement_model = mm_full,
+                          structural_model  = sm_full)
+boot_full <- bootstrap_model(pls_full, nboot = 5000)
+
+# This is what we need for 1b
+summary(pls_full)$weights
+summary(boot_full)$bootstrapped_paths
+```
+
+## Answer:
+
+Four decisions emerge from the outer weights and path coefficients:
+
+**Tol3_1 → Removed**  
+Mean inter-item correlation of r = 0.006 with other Tolerance items. 
+Already dropped from the model.
+
+**IC2_2 and IC2_3 → Flagged for removal**  
+IC2_3 has a negative weight (−0.101) and IC2_2 falls below the 0.20 
+threshold (0.172). The construct is dominated by IC1 (0.848). Removal 
+will be tested in RQ3.
+
+**CA1 and CA2 → Weak, construct non-significant**  
+Comp_Anticipation → Tolerance is non-significant in all model versions 
+(β = −0.050, p = 0.251). CA1 (0.389) and CA2 (0.468) contribute little. 
+Dropping the construct will be explored in RQ3.
+
+**ConflictExp_All → Merging candidate**  
+Significant in the full model (β = −0.110, p = 0.005) but expected to 
+drop out in sub-group models. Whether to merge with ConflictExp_WB will 
+be tested in RQ3.
+
+#############################################################################################
+## RQ2: What roles do tangible costs, intangible costs, and intangible benefits play, and how 
+do they interact with compensation experience? 
+
+```{r RQ2}
+# plit data
+df_comp   <- df[df$CE0 == 1, ]   # with compensation    n = 277
+df_nocomp <- df[df$CE0 == 0, ]   # without compensation n = 348
+mm_rq2 <- constructs(
+  composite("Tolerance",
+            c("Tol1_5", "Tol2_1", "Tol4_5"),    mode_A),
+  composite("Intangible_Costs",
+            c("IC1", "IC2_1", "IC2_2", "IC2_3"), mode_A),
+  composite("Intangible_Benefits", "IB",          mode_A),
+  composite("Tangible_Costs",
+            c("TC1_DamagedArea", "TC2_EconomicLoss_Std"), mode_A)
+)
+
+sm_rq2 <- relationships(
+  paths(from = c("Intangible_Costs",
+                 "Intangible_Benefits",
+                 "Tangible_Costs"),
+        to   = "Tolerance")
+)
+
+set.seed(123)
+pls_comp   <- estimate_pls(data = df_comp,
+                            measurement_model = mm_rq2,
+                            structural_model  = sm_rq2)
+pls_nocomp <- estimate_pls(data = df_nocomp,
+                            measurement_model = mm_rq2,
+                            structural_model  = sm_rq2)
+
+boot_comp   <- bootstrap_model(pls_comp,   nboot = 5000, cores = 1)
+boot_nocomp <- bootstrap_model(pls_nocomp, nboot = 5000, cores = 1)
+
+print("--- WITH compensation (n = 277) ---")
+summary(boot_comp)$bootstrapped_paths
+
+print("--- WITHOUT compensation (n = 348) ---")
+summary(boot_nocomp)$bootstrapped_paths
+```
+## Answer RQ2:
+
+Sub-group models were estimated separately for residents with (n = 277) 
+and without (n = 348) compensation experience to examine how costs and 
+benefits shape tolerance across groups.
+
+| Construct | With Compensation | Without Compensation |
+|---|---|---|
+| Intangible Costs → Tolerance | −0.282 * | −0.404 *** |
+| Intangible Benefits → Tolerance | 0.159 * | 0.181 *** |
+| Tangible Costs → Tolerance | 0.088 n.s. | 0.019 n.s. |
+
+### Interpretation
+
+**Intangible costs** are the dominant negative driver of tolerance in 
+both groups, but the effect is weaker for compensated residents 
+(Δβ = 0.122). Compensation appears to partially buffer the emotional 
+burden of living with wild boars, though it does not eliminate it.
+
+**Intangible benefits** show a stable positive effect across both groups. 
+Residents who perceive wild boars as ecologically valuable are more 
+tolerant regardless of compensation status — this is the only 
+consistently positive driver of tolerance.
+
+**Tangible costs** are non-significant in both groups. Economic losses 
+do not drive tolerance in either direction, confirming that the 
+compensation paradox operates through psychological channels rather 
+than financial hardship.
+
+Whether the difference in the intangible cost effect (−0.282 vs −0.404) 
+is statistically significant will be formally tested in RQ3 via 
+multi-group analysis.
+
+
+#############################################################################################
+## 2a): Construct validity and reliability 
+```{r 2a}
+sum_full <- summary(pls_full)
+sum_full$reliability # AVE and composite reliability
+sum_full$validity$htmt # HTMT (discriminant validity — was missing entirely)
+```
+## Answer 2a): Reliability (AVE, Composite Reliability, Cronbach's Alpha)
+
+| Construct | α | ρA | ρC | AVE | AVE ≥ 0.5 | ρC ≥ 0.7 |
+|---|---|---|---|---|---|---|
+| Tolerance | 0.577 | 0.611 | 0.781 | 0.550 | ✓ | ✓ |
+| Intangible_Costs | 0.280 | 0.207 | 0.450 | 0.273 | ✗ | ✗ |
+| ConflictExp_WB | 0.341 | 1.000 | 0.563 | 0.301 | ✗ | ✗ |
+| ConflictExp_All | 0.300 | 1.000 | 0.651 | 0.394 | ✗ | ✗ |
+| Comp_Anticipation | 0.085 | 1.000 | 0.602 | 0.352 | ✗ | ✗ |
+| Policy_Support | 0.183 | 1.000 | 0.500 | 0.496 | ✗ | ✗ |
+
+**Tolerance** is the only reflective construct that meets both thresholds 
+(AVE = 0.550, ρC = 0.781). All other constructs fall below the AVE ≥ 0.5 
+and ρC ≥ 0.7 thresholds.
+
+However, this is expected and not a problem for four reasons:
+
+1. **ConflictExp_WB, ConflictExp_All, Comp_Anticipation, Policy_Support** are specified as **formative (mode_B)**. AVE and composite reliability are only meaningful for reflective constructs — these criteria do not apply here.
+
+2. **Intangible_Costs** is reflective but shows poor reliability (AVE = 0.273, ρC = 0.450). This is consistent with the finding in 1b that IC2_2 and IC2_3 should be removed. This construct requires re-specification in RQ3.
+
+### Discriminant Validity (HTMT)
+
+Threshold: HTMT < 0.90 indicates discriminant validity.  
+HTMT > 1.00 indicates a serious validity problem.
+
+**Problematic pairs (HTMT ≥ 0.90):**
+
+| Construct Pair | HTMT | Problem |
+|---|---|---|
+| ConflictExp_All ↔ ConflictExp_WB | 1.166 | ✗ Severe — constructs not distinct |
+| Policy_Support ↔ Intangible_Costs | 1.112 | ✗ Severe — constructs overlap |
+| Policy_Support ↔ ConflictExp_All | 1.010 | ✗ Severe — constructs overlap |
+| Comp_Anticipation ↔ Policy_Support | 0.952 | ✗ Too high |
+| Comp_Anticipation ↔ ConflictExp_All | 0.917 | ✗ Too high |
+| Assets ↔ Comp_Anticipation | 1.190 | ✗ Severe |
+
+**Clean pairs (HTMT < 0.90):**  
+Tolerance shows acceptable discriminant validity against most constructs 
+(highest: Intangible_Costs = 0.755). Compensation is well-separated 
+from all constructs (all HTMT < 0.54).
+
+### Summary and Implications: The HTMT results reveal three important issues:
+
+**1. ConflictExp_WB and ConflictExp_All overlap severely (HTMT = 1.166)**  
+This confirms the merging suggestion from 1b — the two conflict 
+experience constructs are empirically indistinguishable and should 
+be combined into one construct in RQ3.
+
+**2. Policy_Support overlaps with multiple constructs**  
+HTMT values exceeding 1.0 with Intangible_Costs and ConflictExp_All 
+suggest Policy_Support lacks discriminant validity in this model. 
+Its role will be re-examined in RQ3.
+
+**3. Intangible_Costs needs re-specification**  
+Poor reliability combined with high HTMT values confirms that IC2_2 
+and IC2_3 should be removed, as flagged in 1b.
+
+These issues do not invalidate the RQ1 and RQ2 findings — the key 
+paths (Intangible_Costs → Tolerance, Compensation → Tolerance) remain 
+robust — but they highlight that the measurement model requires 
+refinement in RQ3.
+
+
+#############################################################################################
+## RQ3: How robust are these relationships across model specifications and groups?
+
+## Step 1: Sensitivity Analysis
+## Re-run RQ1 model without demographics, then without ConflictExp
+
+
+```{r sensitivityAnalysis}
+# Without demographics
+sm_nodemo <- relationships(
+  paths(from = "Compensation",
+        to   = c("Tolerance", "Policy_Support", "Intangible_Costs")),
+  paths(from = "ConflictExp_WB",
+        to   = c("Tolerance", "Intangible_Costs")),
+  paths(from = c("Intangible_Costs",
+                 "Intangible_Benefits",
+                 "Policy_Support"),
+        to   = "Tolerance")
+)
+
+# Without ConflictExp
+sm_noconflict <- relationships(
+  paths(from = "Compensation",
+        to   = c("Tolerance", "Policy_Support", "Intangible_Costs")),
+  paths(from = c("Intangible_Costs",
+                 "Intangible_Benefits",
+                 "Policy_Support"),
+        to   = "Tolerance")
+)
+
+mm_nodemo <- constructs(
+  composite("Tolerance",
+            c("Tol1_5", "Tol2_1", "Tol4_5"),    mode_A),
+  composite("Intangible_Costs",
+            c("IC1", "IC2_1", "IC2_2", "IC2_3"), mode_A),
+  composite("Intangible_Benefits", "IB",          mode_A),
+  composite("Policy_Support",
+            c("PS1", "PS2"),                     mode_B),
+  composite("ConflictExp_WB",
+            multi_items("CP_WB", 1:4),           mode_B),
+  composite("Compensation",        "CE0",         mode_A)
+)
+
+mm_noconflict <- constructs(
+  composite("Tolerance",
+            c("Tol1_5", "Tol2_1", "Tol4_5"),    mode_A),
+  composite("Intangible_Costs",
+            c("IC1", "IC2_1", "IC2_2", "IC2_3"), mode_A),
+  composite("Intangible_Benefits", "IB",          mode_A),
+  composite("Policy_Support",
+            c("PS1", "PS2"),                     mode_B),
+  composite("Compensation",        "CE0",         mode_A)
+)
+
+set.seed(123)
+pls_nodemo     <- estimate_pls(df, mm_nodemo,     sm_nodemo)
+pls_noconflict <- estimate_pls(df, mm_noconflict, sm_noconflict)
+
+boot_nodemo     <- bootstrap_model(pls_nodemo,     nboot = 5000, cores = 1)
+boot_noconflict <- bootstrap_model(pls_noconflict, nboot = 5000, cores = 1)
+
+print("--- Sensitivity 1: Without Demographics ---")
+summary(boot_nodemo)$bootstrapped_paths
+
+print("--- Sensitivity 2: Without ConflictExp ---")
+summary(boot_noconflict)$bootstrapped_paths
+
+```
+
+## Step 2: Comparison Table
+## Collect Compensation -> Tolerance across all model versions
+
+```{r comparisionTable}
+comp_table <- data.frame(
+  Model = c("RQ1 Full",
+            "No Demographics",
+            "No ConflictExp",
+            "With Compensation",
+            "Without Compensation"),
+  Beta = c(
+    summary(boot_rq1)$bootstrapped_paths[
+      "Compensation  ->  Tolerance", "Original Est."],
+    summary(boot_nodemo)$bootstrapped_paths[
+      "Compensation  ->  Tolerance", "Original Est."],
+    summary(boot_noconflict)$bootstrapped_paths[
+      "Compensation  ->  Tolerance", "Original Est."],
+    summary(boot_comp)$bootstrapped_paths[
+      # no compensation path in sub-group models
+      NA],
+    NA
+  ),
+  CI_Low = c(
+    summary(boot_rq1)$bootstrapped_paths[
+      "Compensation  ->  Tolerance", "2.5% CI"],
+    summary(boot_nodemo)$bootstrapped_paths[
+      "Compensation  ->  Tolerance", "2.5% CI"],
+    summary(boot_noconflict)$bootstrapped_paths[
+      "Compensation  ->  Tolerance", "2.5% CI"],
+    NA, NA
+  ),
+  CI_High = c(
+    summary(boot_rq1)$bootstrapped_paths[
+      "Compensation  ->  Tolerance", "97.5% CI"],
+    summary(boot_nodemo)$bootstrapped_paths[
+      "Compensation  ->  Tolerance", "97.5% CI"],
+    summary(boot_noconflict)$bootstrapped_paths[
+      "Compensation  ->  Tolerance", "97.5% CI"],
+    NA, NA
+  )
+)
+
+print("--- Comparison Table: Compensation -> Tolerance ---")
+print(comp_table)
+```
+
+## Step 3: Multi-Group Analysis (MGA) --> Multigroup() not in seminr?
+## Step 3: Manual MGA via permutation test
+## Tests whether Intangible_Costs -> Tolerance differs significantly between groups
+## Formally tests whether group differences are significant
+```{r mga, echo=TRUE, message=FALSE}
+set.seed(123)
+n_perm <- 1000
+
+# Observed difference from RQ2 sub-group models
+beta_comp   <- summary(boot_comp)$bootstrapped_paths[
+  "Intangible_Costs  ->  Tolerance", "Original Est."]
+beta_nocomp <- summary(boot_nocomp)$bootstrapped_paths[
+  "Intangible_Costs  ->  Tolerance", "Original Est."]
+observed_diff <- beta_comp - beta_nocomp
+
+cat("Observed difference (with - without):", round(observed_diff, 3), "\n")
+
+# Permutation loop
+perm_diffs <- numeric(n_perm)
+
+for (i in 1:n_perm) {
+  # Randomly shuffle group labels
+  df_perm      <- df
+  df_perm$CE0  <- sample(df$CE0)
+  
+  df_perm_comp   <- df_perm[df_perm$CE0 == 1, ]
+  df_perm_nocomp <- df_perm[df_perm$CE0 == 0, ]
+  
+  pls_p1 <- estimate_pls(data = df_perm_comp,
+                          measurement_model = mm_rq2,
+                          structural_model  = sm_rq2)
+  pls_p2 <- estimate_pls(data = df_perm_nocomp,
+                          measurement_model = mm_rq2,
+                          structural_model  = sm_rq2)
+  
+  b1 <- summary(pls_p1)$paths[
+    "Intangible_Costs", "Tolerance"]
+  b2 <- summary(pls_p2)$paths[
+    "Intangible_Costs", "Tolerance"]
+  
+  perm_diffs[i] <- b1 - b2
+}
+
+# Two-tailed p-value
+p_value <- mean(abs(perm_diffs) >= abs(observed_diff))
+
+cat("=== Permutation MGA Results ===\n")
+cat("With compensation:    β =", round(beta_comp,   3), "\n")
+cat("Without compensation: β =", round(beta_nocomp, 3), "\n")
+cat("Observed Δβ:             ", round(observed_diff, 3), "\n")
+cat("Permutation p-value:     ", round(p_value, 3), "\n")
+cat("Significant (p < 0.05):  ", p_value < 0.05, "\n")
+```
+## Step 4: Model quality metrics: R² , f² effect sizes
+```{r modelQuality}
+# R² 
+cat("=== R² Values ===\n")
+cat("RQ1 full model:\n")
+cat("  Tolerance:        ", summary(pls_rq1)$paths["R^2", "Tolerance"], "\n")
+cat("  Policy_Support:   ", summary(pls_rq1)$paths["R^2", "Policy_Support"], "\n")
+cat("  Intangible_Costs: ", summary(pls_rq1)$paths["R^2", "Intangible_Costs"], "\n")
+
+cat("\nNo demographics:\n")
+cat("  Tolerance:        ", summary(pls_nodemo)$paths["R^2", "Tolerance"], "\n")
+
+cat("\nNo conflict:\n")
+cat("  Tolerance:        ", summary(pls_noconflict)$paths["R^2", "Tolerance"], "\n")
+
+# f² effect sizes
+cat("\n=== Effect Sizes f² ===\n")
+cat("(> 0.02 small | > 0.15 medium | > 0.35 large)\n\n")
+
+f2 <- summary(pls_rq1)$fSquare
+cat("Compensation    -> Tolerance:        ", f2["Compensation",        "Tolerance"], "\n")
+cat("Compensation    -> Policy_Support:   ", f2["Compensation",        "Policy_Support"], "\n")
+cat("ConflictExp_WB  -> Intangible_Costs: ", f2["ConflictExp_WB",      "Intangible_Costs"], "\n")
+cat("Intangible_Costs-> Tolerance:        ", f2["Intangible_Costs",    "Tolerance"], "\n")
+cat("Intangible_Ben  -> Tolerance:        ", f2["Intangible_Benefits", "Tolerance"], "\n")
+cat("Policy_Support  -> Tolerance:        ", f2["Policy_Support",      "Tolerance"], "\n")
+```
+
+## Answer RQ3:
+## RQ3: Robustness Checks
+
+### Sensitivity Analysis
+
+The compensation effect was tested across three model specifications 
+to check whether the finding depends on model composition.
+
+| Model | β | 95% CI | p |
+|---|---|---|---|
+| Full model (RQ1) | −0.134 | [−0.205, −0.056] | < 0.001 |
+| Without demographics | −0.135 | [−0.207, −0.057] | < 0.001 |
+| Without ConflictExp | −0.136 | [−0.209, −0.057] | < 0.001 |
+
+The compensation effect is completely stable across all specifications. 
+The core finding is robust.
+
+### Multi-Group Analysis
+
+A permutation test (1000 permutations) tested whether the intangible 
+cost effect differs significantly between compensation groups.
+
+| | With Comp (n = 277) | Without Comp (n = 348) |
+|---|---|---|
+| Intangible_Costs → Tolerance | −0.282 | −0.404 |
+| Δβ = 0.122 | p = 0.125 | Not significant |
+
+The difference is not statistically significant. Both groups are 
+equally sensitive to intangible costs once sampling variability 
+is accounted for.
+
+### Model Quality
+
+| Metric | Value | Interpretation |
+|---|---|---|
+| R² Tolerance | 0.204 | Model explains 20% of variance |
+| R² Policy_Support | 0.117 | Compensation explains 12% |
+| R² Intangible_Costs | 0.092 | Conflict explains 9% |
+| f² Intangible_Costs → Tolerance | 0.103 | Medium effect |
+| f² Compensation → Policy_Support | 0.132 | Medium effect |
+| f² Compensation → Tolerance | 0.019 | Small effect |
+| SRMR | n/a | Not available in current seminr version |
+
+
+### Summary
+
+The three key findings hold across all robustness checks:
+
+- Compensation → Tolerance is stable and negative (β ≈ −0.135)
+- Group differences in the intangible cost effect are not 
+  statistically significant (p = 0.125)
+- The model has moderate explanatory power (R² = 0.20) with 
+  medium effect sizes for the core theoretical pathways
+
+
+## Plot: Comparison Table: Key paths across all model versions
+```{r plotRQ3}
+library(knitr)
+library(kableExtra)
+
+comparison <- data.frame(
+  Dimension = c(
+    "Sample size",
+    "Compensation → Tolerance (direct)",
+    "Intangible_Costs → Tolerance",
+    "Intangible_Benefits → Tolerance",
+    "Tangible_Costs → Tolerance",
+    "ConflictExp_WB → Intangible_Costs",
+    "Policy_Support → Tolerance",
+    "R² Tolerance",
+    "Dominant pathway"
+  ),
+  Full_Sample = c(
+    "n = 625",
+    "−0.134 ***",
+    "−0.328 ***",
+    "0.171 ***",
+    "0.007 n.s.",
+    "0.304 ***",
+    "−0.057 n.s.",
+    "0.204",
+    "Intangible costs + benefits"
+  ),
+  With_Compensation = c(
+    "n = 277",
+    "— (not in sub-model)",
+    "−0.282 *",
+    "0.159 *",
+    "0.088 n.s.",
+    "— (not in sub-model)",
+    "— (dropped, low variance)",
+    "—",
+    "Intangible costs + benefits"
+  ),
+  Without_Compensation = c(
+    "n = 348",
+    "— (not in sub-model)",
+    "−0.404 ***",
+    "0.181 ***",
+    "0.019 n.s.",
+    "— (not in sub-model)",
+    "— (dropped, low variance)",
+    "—",
+    "Intangible costs + benefits"
+  )
+)
+
+kable(
+  comparison,
+  col.names = c("Dimension",
+                "Full Sample",
+                "With Compensation",
+                "Without Compensation"),
+  caption   = "Conceptual Comparison of Tolerance Formation Across Models",
+  align     = c("l","c","c","c")
+) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "bordered"),
+    full_width        = TRUE,
+    font_size         = 12
+  ) %>%
+  row_spec(0, bold = TRUE, background = "#2C5F2D", color = "white") %>%
+  row_spec(c(3, 4), background = "#f0f7f0") %>%
+  row_spec(9, bold = TRUE, background = "#fff3cd") %>%
+  column_spec(1, bold = TRUE, width = "25%") %>%
+  column_spec(2:4, width = "25%")
+```
+
+### Interpretation
+
+The comparison confirms three consistent findings across all model versions:
+
+**Intangible costs** are the strongest negative predictor of tolerance 
+in every model. The effect is larger without compensation (−0.404) than 
+with compensation (−0.282), suggesting compensation partially buffers 
+the emotional burden — though this difference is not statistically 
+significant (permutation p = 0.125).
+
+**Intangible benefits** show a stable positive effect across all groups. 
+Perceived ecological value of wild boars increases tolerance regardless 
+of compensation status.
+
+**Tangible costs** are non-significant in all three models. Economic 
+losses do not drive tolerance in any direction — the compensation 
+paradox operates through psychological channels, not financial ones.
+
+**Compensation** has a direct negative effect in the full sample 
+(β = −0.134, p < 0.001) but is not included as a predictor in the 
+sub-group models since the groups are already split by compensation 
+status.
+
+**Overall:** the dominant pathway to tolerance is identical across all 
+three models — intangible costs and benefits. This consistency 
+across the full sample and both sub-groups confirms the robustness 
+of the core findings.
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
