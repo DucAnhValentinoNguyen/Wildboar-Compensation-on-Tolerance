@@ -773,21 +773,322 @@ status.
 three models — intangible costs and benefits. This consistency 
 across the full sample and both sub-groups confirms the robustness 
 of the core findings.
+
+
+################################################################################
+## 2b) Indicator selection and redundancy
+# Refined model — remove non-significant indicators
+# Removing: CP_WB2, IC2_2, IC2_3, PS2
 ```{r}
 
-```
+mm_refined <- constructs(
+  composite("Tolerance",
+            c("Tol1_5", "Tol2_1", "Tol4_5"),    mode_A),
+  composite("ConflictExp_WB",
+            c("CP_WB1", "CP_WB3", "CP_WB4"),     mode_B),  # CP_WB2 removed
+  composite("Intangible_Costs",
+            c("IC1", "IC2_1"),                    mode_A),  # IC2_2, IC2_3 removed
+  composite("Intangible_Benefits", "IB",          mode_A),
+  composite("Policy_Support",      "PS1",         mode_A),  # PS2 removed
+  composite("Compensation",        "CE0",         mode_A)
+)
 
+sm_refined <- relationships(
+  paths(from = "Compensation",
+        to   = c("Tolerance", "Policy_Support", "Intangible_Costs")),
+  paths(from = "ConflictExp_WB",
+        to   = c("Tolerance", "Intangible_Costs")),
+  paths(from = c("Intangible_Costs",
+                 "Intangible_Benefits",
+                 "Policy_Support"),
+        to   = "Tolerance")
+)
+
+set.seed(123)
+pls_refined <- estimate_pls(data = df,
+                             measurement_model = mm_refined,
+                             structural_model  = sm_refined)
+
+# R² comparison — did removing indicators improve the model?
+cat("Original R²:", summary(pls_rq1)$paths["R^2",      "Tolerance"], "\n")
+cat("Refined  R²:", summary(pls_refined)$paths["R^2",  "Tolerance"], "\n")
+```
+## Answer: 2b)
+## Three indicators flagged in the protocol (CA1, CA2, IC2_3) plus CP_WB2, IC2_2, and PS2 were confirmed non-significant across all model versions and removed in a refined model. The refined model was re-estimated with the remaining indicators 
+(IC1, IC2_1, CP_WB1, CP_WB3, CP_WB4, PS1). R² decreased marginally from 0.204 to 0.197, confirming that removing these 
+indicators simplifies the model without substantial loss of information. The original model is retained for the main analysis 
+and the refined model serves as a robustness check.
+
+
+###############################################################################
+## RQ3: Additional Robustness Check — County Comparison
+
+In addition to the compensation group comparison, we test whether the core relationships differ between the two survey counties 
+(Baoxing, n = 160 vs Qingchuan, n = 465). 
+The two counties differ in survey timing and geographic context, making this a meaningful test of geographical robustness.
 ```{r}
+## County MGA setup
+df$County <- df_raw$Q1_County
 
+df_baoxing   <- df[df$County == "Baoxing",   ]
+df_qingchuan <- df[df$County == "Qingchuan", ]
+
+cat("Baoxing n =",   nrow(df_baoxing),   "\n")
+cat("Qingchuan n =", nrow(df_qingchuan), "\n")
+
+cat("\nCompensation in Baoxing:  ",
+    sum(df_baoxing$CE0 == 1), "with /",
+    sum(df_baoxing$CE0 == 0), "without\n")
+cat("Compensation in Qingchuan:",
+    sum(df_qingchuan$CE0 == 1), "with /",
+    sum(df_qingchuan$CE0 == 0), "without\n")
+
+# Check variance of key variables in each county
+cat("\nVariance check Baoxing:\n")
+cat("  PS1:", var(df_baoxing$PS1), "\n")
+cat("  PS2:", var(df_baoxing$PS2), "\n")
+cat("  CE0:", var(df_baoxing$CE0), "\n")
+
+cat("\nVariance check Qingchuan:\n")
+cat("  PS1:", var(df_qingchuan$PS1), "\n")
+cat("  PS2:", var(df_qingchuan$PS2), "\n")
+cat("  CE0:", var(df_qingchuan$CE0), "\n")
 ```
+## Same problem as before — PS1 in Qingchuan has near-zero variance (0.113). Drop Policy_Support from the county models. 
+# Baoxing is heavily skewed toward compensation (119 vs 41)
+# Qingchuan is the opposite (158 vs 307) — worth mentioning in interpretation
+## County MGA: simplified for Baoxing variance issue
+# Baoxing: drop Compensation (119/41 split too uneven for bootstrap)
+```{r} 
+# Extract from 3D array [from, to, boot_iteration]
+ic_boots  <- boot_baoxing_simple$boot_paths["Intangible_Costs",  "Tolerance", ]
+ib_boots  <- boot_baoxing_simple$boot_paths["Intangible_Benefits","Tolerance", ]
 
+ic_est  <- summary(pls_baoxing_simple)$paths["Intangible_Costs",  "Tolerance"]
+ib_est  <- summary(pls_baoxing_simple)$paths["Intangible_Benefits","Tolerance"]
+
+cat("=== Baoxing (n = 160) ===\n\n")
+
+cat("Intangible_Costs -> Tolerance:\n")
+cat("  β =",   round(ic_est, 3), "\n")
+cat("  95% CI [", round(quantile(ic_boots, 0.025), 3),
+    ",",           round(quantile(ic_boots, 0.975), 3), "]\n")
+cat("  Significant:",
+    quantile(ic_boots, 0.025) > 0 | quantile(ic_boots, 0.975) < 0, "\n\n")
+
+cat("Intangible_Benefits -> Tolerance:\n")
+cat("  β =",   round(ib_est, 3), "\n")
+cat("  95% CI [", round(quantile(ib_boots, 0.025), 3),
+    ",",           round(quantile(ib_boots, 0.975), 3), "]\n")
+cat("  Significant:",
+    quantile(ib_boots, 0.025) > 0 | quantile(ib_boots, 0.975) < 0, "\n\n")
+
+cat("R² Baoxing:",
+    summary(pls_baoxing_simple)$paths["R^2", "Tolerance"], "\n")
+
+# Extract from 3D array for Qingchuan
+ic_boots_q  <- boot_qingchuan$boot_paths["Intangible_Costs",  "Tolerance", ]
+ib_boots_q  <- boot_qingchuan$boot_paths["Intangible_Benefits","Tolerance", ]
+comp_boots_q <- boot_qingchuan$boot_paths["Compensation",      "Tolerance", ]
+
+ic_est_q   <- summary(pls_qingchuan)$paths["Intangible_Costs",  "Tolerance"]
+ib_est_q   <- summary(pls_qingchuan)$paths["Intangible_Benefits","Tolerance"]
+comp_est_q <- summary(pls_qingchuan)$paths["Compensation",       "Tolerance"]
+
+cat("=== Qingchuan (n = 465) ===\n\n")
+
+cat("Intangible_Costs -> Tolerance:\n")
+cat("  β =", round(ic_est_q, 3), "\n")
+cat("  95% CI [", round(quantile(ic_boots_q, 0.025), 3),
+    ",",           round(quantile(ic_boots_q, 0.975), 3), "]\n")
+cat("  Significant:",
+    quantile(ic_boots_q, 0.025) > 0 | quantile(ic_boots_q, 0.975) < 0, "\n\n")
+
+cat("Intangible_Benefits -> Tolerance:\n")
+cat("  β =", round(ib_est_q, 3), "\n")
+cat("  95% CI [", round(quantile(ib_boots_q, 0.025), 3),
+    ",",           round(quantile(ib_boots_q, 0.975), 3), "]\n")
+cat("  Significant:",
+    quantile(ib_boots_q, 0.025) > 0 | quantile(ib_boots_q, 0.975) < 0, "\n\n")
+
+cat("Compensation -> Tolerance:\n")
+cat("  β =", round(comp_est_q, 3), "\n")
+cat("  95% CI [", round(quantile(comp_boots_q, 0.025), 3),
+    ",",           round(quantile(comp_boots_q, 0.975), 3), "]\n")
+cat("  Significant:",
+    quantile(comp_boots_q, 0.025) > 0 | quantile(comp_boots_q, 0.975) < 0, "\n\n")
+
+cat("R² Qingchuan:",
+    summary(pls_qingchuan)$paths["R^2", "Tolerance"], "\n")
+```
+## RQ3: Additional Robustness Check — County Comparison
+
+Models were estimated separately for Baoxing (n = 160) and 
+Qingchuan (n = 465) to test whether the core findings hold 
+across geographic regions. Note: due to severe compensation 
+imbalance in Baoxing (119 with / 41 without), Compensation 
+could not be included in the Baoxing model and only the core 
+psychological constructs were estimated.
+
+---
+
+### Results
+
+| Path | Baoxing (n = 160) | Qingchuan (n = 465) | Full Sample (n = 625) |
+|---|---|---|---|
+| Intangible_Costs → Tolerance | −0.359 * [−0.505, −0.219] | −0.340 * [−0.439, −0.240] | −0.328 * [−0.408, −0.246] |
+| Intangible_Benefits → Tolerance | 0.162 n.s. [−0.008, 0.310] | 0.184 * [0.105, 0.265] | 0.171 * [0.096, 0.243] |
+| Compensation → Tolerance | — (not estimable) | −0.097 * [−0.169, −0.021] | −0.134 * [−0.205, −0.056] |
+| R² Tolerance | 0.160 | 0.203 | 0.204 |
+
+---
+
+### Interpretation
+
+**Intangible costs** are the strongest negative predictor of 
+tolerance in both counties and the full sample. The effect is 
+remarkably consistent — β = −0.359 in Baoxing, −0.340 in 
+Qingchuan, and −0.328 in the full sample. This confirms the 
+finding is geographically robust.
+
+**Intangible benefits** are significant in Qingchuan and the 
+full sample but borderline non-significant in Baoxing 
+(β = 0.162, CI [−0.008, 0.310]). This may reflect the smaller 
+sample size in Baoxing reducing statistical power rather than 
+a genuine geographic difference.
+
+**Compensation** replicates its negative direct effect in 
+Qingchuan (β = −0.097, p < 0.05), where the group split is 
+more balanced (158 with / 307 without). The effect is slightly 
+smaller than the full sample (−0.134), which is expected since 
+Qingchuan has proportionally fewer compensated residents.
+
+**R²** is consistent across Qingchuan (0.203) and the full 
+sample (0.204), confirming that the model structure is stable 
+geographically. Baoxing shows slightly lower R² (0.160), likely 
+due to the smaller sample and missing Compensation construct.
+
+---
+
+### Summary
+
+The core findings replicate across both counties. Intangible 
+costs consistently dominate tolerance formation regardless of 
+geographic location or survey timing. The compensation paradox 
+holds in Qingchuan and is assumed to hold in Baoxing based on 
+the full sample results, though it could not be formally tested 
+due to group imbalance.
 ```{r}
+library(knitr)
+library(kableExtra)
 
+county_comparison <- data.frame(
+  Dimension = c(
+    "Sample size",
+    "Survey period",
+    "Compensation split",
+    "Intangible_Costs → Tolerance",
+    "Intangible_Benefits → Tolerance",
+    "Compensation → Tolerance",
+    "R² Tolerance",
+    "Dominant pathway"
+  ),
+  Baoxing = c(
+    "n = 160",
+    "August 2024",
+    "119 with / 41 without",
+    "−0.359 * [−0.505, −0.219]",
+    "0.162 n.s. [−0.008, 0.310]",
+    "— (not estimable)",
+    "0.160",
+    "Intangible costs"
+  ),
+  Qingchuan = c(
+    "n = 465",
+    "March–April 2025",
+    "158 with / 307 without",
+    "−0.340 * [−0.439, −0.240]",
+    "0.184 * [0.105, 0.265]",
+    "−0.097 * [−0.169, −0.021]",
+    "0.203",
+    "Intangible costs, Intangible benefits"
+  ),
+  Full_Sample = c(
+    "n = 625",
+    "Combined",
+    "277 with / 348 without",
+    "−0.328 * [−0.408, −0.246]",
+    "0.171 * [0.096, 0.243]",
+    "−0.134 * [−0.205, −0.056]",
+    "0.204",
+    "Intangible costs, Intangible benefits"
+  )
+)
+
+kable(
+  county_comparison,
+  col.names = c("Dimension",
+                "Baoxing",
+                "Qingchuan",
+                "Full Sample"),
+  caption   = "County Comparison: Tolerance Formation Across Geographic Groups",
+  align     = c("l", "c", "c", "c")
+) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "bordered"),
+    full_width        = TRUE,
+    font_size         = 12
+  ) %>%
+  row_spec(0, bold = TRUE,
+           background = "#2C5F2D", color = "white") %>%
+  row_spec(4, background = "#f0f7f0") %>%   # IC row highlighted
+  row_spec(5, background = "#f0f7f0") %>%   # IB row highlighted
+  row_spec(8, bold = TRUE,
+           background = "#fff3cd") %>%       # dominant pathway
+  column_spec(1, bold = TRUE, width = "28%") %>%
+  column_spec(2:4, width = "24%") %>%
+  footnote(
+    general = "* = significant (95% CI does not cross zero) | n.s. = not significant | — = not estimable due to group imbalance"
+  )
 ```
 
-```{r}
 
-```
+## Interpretation:
+
+
+### County Comparison: Interpretation
+
+The table confirms that the core findings are geographically robust 
+across both counties.
+
+**Intangible costs** are the strongest and most consistent finding. 
+The effect is significant and nearly identical in both counties 
+(Baoxing: −0.359, Qingchuan: −0.340) and matches the full sample 
+(−0.328). Regardless of where residents live or when they were 
+surveyed, higher emotional burden from wild boars consistently 
+reduces tolerance.
+
+**Intangible benefits** are significant in Qingchuan and the full 
+sample but borderline non-significant in Baoxing (β = 0.162, 
+CI [−0.008, 0.310]). This is most likely a statistical power issue 
+— Baoxing only has n = 160, which makes it harder to detect smaller 
+effects — rather than a genuine geographic difference.
+
+**Compensation** could not be tested in Baoxing due to a severe 
+group imbalance (119 with vs only 41 without compensation). In 
+Qingchuan, where the split is more balanced, the compensation 
+paradox replicates clearly (β = −0.097, p < 0.05) — though the 
+effect is slightly smaller than the full sample (−0.134).
+
+**R²** is consistent across Qingchuan (0.203) and the full sample 
+(0.204), confirming the model explains a similar amount of variance 
+in both. Baoxing shows slightly lower R² (0.160), reflecting the 
+missing compensation construct and smaller sample.
+
+**Overall:** the dominant pathway — intangible costs reducing 
+tolerance — holds across both counties, both survey periods, and 
+the full sample. The compensation paradox is confirmed where it 
+could be tested. The findings are geographically robust.
 
 ```{r}
 
