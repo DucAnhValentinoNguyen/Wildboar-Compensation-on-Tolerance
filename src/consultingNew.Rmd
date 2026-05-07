@@ -1,0 +1,738 @@
+---
+title: "Consulting Project"
+subtitle: "The Compensation Paradox: A PLS-SEM Approach"
+author: "Duc-Anh Nguyen"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: flatly
+    highlight: tango
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+library(readxl)
+library(seminr)
+library(dplyr)
+library(glmnet)
+library(rsvg)
+# install.packages("rsvg")
+```
+
+## Introduction:
+This analysis (first edition) tries to answer the following questions and also to leverage all of our modeling choices:
+
+### Research Questions:
+1. Does compensation for wild boar damage have a direct effect on tolerance toward wild boar, or is its influence mediated by other social and psychological factors? 
+2. What roles do tangible costs, intangible costs, and intangible benefits play in shaping tolerance, and how do these factors interact with compensation experience? 
+
+
+
+### Methodological Challenges:
+1. Model performance and specification 
+  a. How can the structural model be improved (e.g. path structure, mediation, moderation)?  
+  b. Should certain constructs be merged, re-specified, or modeled formatively vs. reflectively? 
+2. Measurement model refinement 
+  a. Assessment and improvement of construct validity and reliability 
+  b. Evaluation of indicator selection and potential redundancy 
+
+
+
+## Main analysis
+
+### Data Prep
+
+```{r dataPrep}
+# Load the dataset
+## Data_all---------
+# Input data
+Data_all <- read_excel("../data/3_Data.xlsx")
+
+head(Data_all)
+colnames(Data_all)
+
+# Model Data Selection
+Data_allinput <- Data_all %>%
+  select("CP_WB1", "CP_WB2", "CP_WB3", "CP_WB4","CP_A1", "CP_A2", "CP_A3",
+         "TC1_DamagedArea", "TC2_EconomicLoss", "IC1",
+         "IC2_1","IC2_2","IC2_3","IC2_DescriptiveAttitude",
+         "IB", "Tol1_5", "Tol2_1", "Tol3_1", "Tol4_5",
+         "PE", "CE0","CE1", "CE2", "CA1", "CA2", "CA3", "PS1", "PS2",
+         "Q4_Gender","Q5_Age","Q6_Education", "Q8_AnnualIncome",
+         "Q14_HouseholdAsset","Q14_CropAsset")
+
+Data_allinput <- Data_allinput %>%
+  mutate(across(everything(), ~as.numeric(as.character(.))))
+
+Data_allinput <- scale(Data_allinput)
+
+head(Data_allinput)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# new analysis part
+## Model0
+```{r model0}
+# Load the required library
+library(seminr)
+
+# Assuming Data_allinput is already loaded, numeric, and scaled
+# Data_allinput <- scale(Data_allinput) %>% as.data.frame()
+
+# -------------------------------------------------------------------
+# 1. Define Measurement Model (Outer Model)
+# -------------------------------------------------------------------
+# In seminr, Mode A (Reflective) uses `reflective()` or `composite()`
+# Mode B (Formative) strictly uses `composite(..., weights = mode_B)`
+
+mm_model0 <- constructs(
+  # Formative Exogenous
+  composite("ConflictExp_WB",            c("CP_WB1", "CP_WB2", "CP_WB3", "CP_WB4"), weights = mode_B),
+  composite("ConflictExp_A",             c("CP_A1", "CP_A2", "CP_A3"), weights = mode_B),
+  
+  # Formative Endogenous (Mitigation)
+  composite("Prevention_Effectiveness",  single_item("PE")), # Single items don't need mode_B specified
+  composite("Compensation_Experience",   single_item("CE0")),
+  composite("Compensation_Anticipation", c("CA1", "CA2", "CA3"), weights = mode_B),
+  composite("Policy_Support",            c("PS1", "PS2"), weights = mode_B),
+  
+  # Formative Endogenous (Costs)
+  composite("Tangible_Costs",            c("TC1_DamagedArea", "TC2_EconomicLoss"), weights = mode_B),
+  composite("Intangible_Costs",          c("IC1", "IC2_1", "IC2_2", "IC2_3"), weights = mode_B),
+  
+  # Reflective Endogenous & Controls
+  reflective("Intangible_Benefits",      single_item("IB")),
+  reflective("Gender",                   single_item("Q4_Gender")),
+  reflective("Age",                      single_item("Q5_Age")),
+  reflective("Education",                single_item("Q6_Education")),
+  reflective("AnnualIncome",             single_item("Q8_AnnualIncome")),
+  reflective("HouseholdAsset",           single_item("Q14_CropAsset")),
+  reflective("Tolerance",                c("Tol1_5", "Tol2_1", "Tol3_1", "Tol4_5"))
+)
+
+# -------------------------------------------------------------------
+# 2. Define Structural Model (Inner Model)
+# -------------------------------------------------------------------
+# Instead of a confusing matrix of 0s and 1s, we literally spell out the causal paths.
+
+sm_model0 <- relationships(
+  # Block 1: Conflict Experience predicts Mitigation & Policy
+  paths(from = c("ConflictExp_WB", "ConflictExp_A"), 
+        to   = c("Prevention_Effectiveness", "Compensation_Experience", "Compensation_Anticipation", "Policy_Support")),
+  
+  # Block 2: Conflict + Mitigation predicts Costs & Benefits
+  paths(from = c("ConflictExp_WB", "ConflictExp_A", "Prevention_Effectiveness", "Compensation_Experience", "Compensation_Anticipation", "Policy_Support"), 
+        to   = c("Tangible_Costs", "Intangible_Costs", "Intangible_Benefits")),
+  
+  # Block 3: EVERYTHING predicts Tolerance
+  paths(from = c("ConflictExp_WB", "ConflictExp_A", "Prevention_Effectiveness", 
+                 "Compensation_Experience", "Compensation_Anticipation", "Policy_Support", 
+                 "Tangible_Costs", "Intangible_Costs", "Intangible_Benefits",
+                 "Gender", "Age", "Education", "AnnualIncome", "HouseholdAsset"), 
+        to   = "Tolerance")
+)
+
+# -------------------------------------------------------------------
+# 3. Estimate the PLS Model
+# -------------------------------------------------------------------
+pls_model0 <- estimate_pls(data = Data_allinput, 
+                           measurement_model = mm_model0, 
+                           structural_model = sm_model0,
+                           inner_weights = path_weighting)
+
+# -------------------------------------------------------------------
+# 4. Bootstrap for Significance (p-values & t-values)
+# -------------------------------------------------------------------
+set.seed(123) # For reproducibility
+boot_model0 <- bootstrap_model(pls_model0, nboot = 500)
+
+
+
+
+
+
+
+
+
+
+
+
+# -------------------------------------------------------------------
+# 5. Review Results
+# -------------------------------------------------------------------
+summary_pls0  <- summary(pls_model0)
+summary_boot0 <- summary(boot_model0)
+
+# 1. R-Squared and Path Coefficients
+cat("\n--- Structural Paths & R-Squared ---\n")
+print(summary_pls0$paths)
+
+# 2. Significance of the paths (t-values and p-values)
+cat("\n--- Bootstrapped Path Significance ---\n")
+print(summary_boot0$bootstrapped_paths)
+
+
+# 3. 
+cat("\n--- Formative Indicators ---\n")
+print(summary_boot0$bootstrapped_weights)
+
+
+cat("\n--- Reflective Indicators ---\n")
+print(summary_boot0$bootstrapped_loadings)
+
+# 4. VIFs for Formative Indicators
+cat("\n--- Variance Inflation Factors (VIF) ---\n")
+print(summary_pls0$validity$vif_items)
+```
+
+
+
+#### Model 0.1
+Dropped: CP_WB3, CA1, CA2, IC2_3, Tol3_1
+```{r model0.1}
+library(seminr)
+
+# Ensure data is a standard data frame
+df <- as.data.frame(Data_allinput)
+
+# -------------------------------------------------------------------
+# 1. Define Measurement Model 0.1
+# -------------------------------------------------------------------
+mm_0_1 <- constructs(
+  # Formative Exogenous
+  composite("ConflictExp_WB",            c("CP_WB1", "CP_WB2", "CP_WB4"), weights = mode_B),
+  composite("ConflictExp_A",             c("CP_A1", "CP_A2", "CP_A3"), weights = mode_B),
+  
+  # Single Items (Mode doesn't matter, but classified as composite/reflective for consistency)
+  composite("Prevention_Effectiveness",  single_item("PE")),
+  composite("Compensation_Experience",   single_item("CE0")),
+  composite("Compensation_Anticipation", single_item("CA3")), # CA1 and CA2 dropped
+  
+  # Formative Endogenous
+  composite("Policy_Support",            c("PS1", "PS2"), weights = mode_B),
+  composite("Tangible_Costs",            c("TC1_DamagedArea", "TC2_EconomicLoss"), weights = mode_B),
+  composite("Intangible_Costs",          c("IC1", "IC2_1", "IC2_2"), weights = mode_B), # IC2_3 dropped
+  
+  # Reflective Endogenous & Single Item Controls
+  reflective("Intangible_Benefits",      single_item("IB")),
+  reflective("Gender",                   single_item("Q4_Gender")),
+  reflective("Age",                      single_item("Q5_Age")),
+  reflective("Education",                single_item("Q6_Education")),
+  reflective("AnnualIncome",             single_item("Q8_AnnualIncome")),
+  reflective("HouseholdAsset",           single_item("Q14_CropAsset")),
+  reflective("Tolerance",                c("Tol1_5", "Tol2_1", "Tol4_5")) # Tol3_1 dropped
+)
+
+# -------------------------------------------------------------------
+# 2. Define Structural Model (Same for all Model 0 iterations)
+# -------------------------------------------------------------------
+sm_baseline <- relationships(
+  paths(from = c("ConflictExp_WB", "ConflictExp_A"), 
+        to   = c("Prevention_Effectiveness", "Compensation_Experience", "Compensation_Anticipation", "Policy_Support")),
+  
+  paths(from = c("ConflictExp_WB", "ConflictExp_A", "Prevention_Effectiveness", "Compensation_Experience", "Compensation_Anticipation", "Policy_Support"), 
+        to   = c("Tangible_Costs", "Intangible_Costs", "Intangible_Benefits")),
+  
+  paths(from = c("ConflictExp_WB", "ConflictExp_A", "Prevention_Effectiveness", 
+                 "Compensation_Experience", "Compensation_Anticipation", "Policy_Support", 
+                 "Tangible_Costs", "Intangible_Costs", "Intangible_Benefits",
+                 "Gender", "Age", "Education", "AnnualIncome", "HouseholdAsset"), 
+        to   = "Tolerance")
+)
+
+# -------------------------------------------------------------------
+# 3. Estimate and Bootstrap Model 0.1
+# -------------------------------------------------------------------
+pls_0_1 <- estimate_pls(data = df, measurement_model = mm_0_1, structural_model = sm_baseline)
+set.seed(123)
+boot_0_1 <- bootstrap_model(pls_0_1, nboot = 500)
+
+sum_0_1 <- summary(pls_0_1)
+sum_boot_0_1 <- summary(boot_0_1)
+
+
+# 1. R-Squared and Path Coefficients
+cat("\n--- Structural Paths & R-Squared ---\n")
+print(sum_0_1$paths)
+
+# 2. Significance of the paths (t-values and p-values)
+cat("\n--- Bootstrapped Path Significance ---\n")
+print(sum_boot_0_1$bootstrapped_paths)
+
+
+# 3. 
+cat("\n--- Formative Indicators ---\n")
+print(sum_boot_0_1$bootstrapped_weights)
+
+
+cat("\n--- Reflective Indicators ---\n")
+print(sum_boot_0_1$bootstrapped_loadings)
+
+# 4. VIFs for Formative Indicators
+cat("\n--- Variance Inflation Factors (VIF) ---\n")
+print(sum_0_1$validity$vif_items)
+```
+
+
+
+
+
+
+## model 0.2
+Further Dropped: CP_A3, IC2_1, IC2_2
+```{r model0.2}
+
+# -------------------------------------------------------------------
+# 1. Define Measurement Model 0.2
+# -------------------------------------------------------------------
+mm_0_2 <- constructs(
+  composite("ConflictExp_WB",            c("CP_WB1", "CP_WB2", "CP_WB4"), weights = mode_B),
+  composite("ConflictExp_A",             c("CP_A1", "CP_A2"), weights = mode_B), # CP_A3 dropped
+  
+  composite("Prevention_Effectiveness",  single_item("PE")),
+  composite("Compensation_Experience",   single_item("CE0")),
+  composite("Compensation_Anticipation", single_item("CA3")), 
+  
+  composite("Policy_Support",            c("PS1", "PS2"), weights = mode_B),
+  composite("Tangible_Costs",            c("TC1_DamagedArea", "TC2_EconomicLoss"), weights = mode_B),
+  composite("Intangible_Costs",          single_item("IC1")), # IC2_1 and IC2_2 dropped (Now single item)
+  
+  reflective("Intangible_Benefits",      single_item("IB")),
+  reflective("Gender",                   single_item("Q4_Gender")),
+  reflective("Age",                      single_item("Q5_Age")),
+  reflective("Education",                single_item("Q6_Education")),
+  reflective("AnnualIncome",             single_item("Q8_AnnualIncome")),
+  reflective("HouseholdAsset",           single_item("Q14_CropAsset")),
+  reflective("Tolerance",                c("Tol1_5", "Tol2_1", "Tol4_5")) 
+)
+
+# -------------------------------------------------------------------
+# 2. Estimate and Bootstrap Model 0.2
+# -------------------------------------------------------------------
+pls_0_2 <- estimate_pls(data = df, measurement_model = mm_0_2, structural_model = sm_baseline, inner_weights = path_weighting)
+set.seed(123)
+boot_0_2 <- bootstrap_model(pls_0_2, nboot = 500)
+
+# Generate Summaries for Evaluation
+sum_0_2 <- summary(pls_0_2)
+sum_boot_0_2 <- summary(boot_0_2)
+
+
+
+# 1. R-Squared and Path Coefficients
+cat("\n--- Structural Paths & R-Squared ---\n")
+print(sum_0_2$paths)
+
+# 2. Significance of the paths (t-values and p-values)
+cat("\n--- Bootstrapped Path Significance ---\n")
+print(sum_boot_0_2$bootstrapped_paths)
+
+
+# 3. 
+cat("\n--- Formative Indicators ---\n")
+print(sum_boot_0_2$bootstrapped_weights)
+
+
+cat("\n--- Reflective Indicators ---\n")
+print(sum_boot_0_2$bootstrapped_loadings)
+
+# 4. VIFs for Formative Indicators
+cat("\n--- Variance Inflation Factors (VIF) ---\n")
+print(sum_0_2$validity$vif_items)
+```
+
+
+
+
+
+
+```{r model0.3}
+
+# -------------------------------------------------------------------
+# 1. Define Measurement Model 0.3
+# -------------------------------------------------------------------
+mm_0_3 <- constructs(
+  composite("ConflictExp_WB",            c("CP_WB1", "CP_WB2", "CP_WB4"), weights = mode_B),
+  composite("ConflictExp_A",             single_item("CP_A1")), # CP_A2 dropped
+  
+  composite("Prevention_Effectiveness",  single_item("PE")),
+  composite("Compensation_Experience",   single_item("CE0")),
+  composite("Compensation_Anticipation", single_item("CA3")), 
+  
+  composite("Policy_Support",            c("PS1", "PS2"), weights = mode_B),
+  composite("Tangible_Costs",            c("TC1_DamagedArea", "TC2_EconomicLoss"), weights = mode_B),
+  composite("Intangible_Costs",          single_item("IC1")),
+  
+  reflective("Intangible_Benefits",      single_item("IB")),
+  reflective("Gender",                   single_item("Q4_Gender")),
+  reflective("Age",                      single_item("Q5_Age")),
+  reflective("Education",                single_item("Q6_Education")),
+  reflective("AnnualIncome",             single_item("Q8_AnnualIncome")),
+  reflective("HouseholdAsset",           single_item("Q14_CropAsset")),
+  reflective("Tolerance",                c("Tol1_5", "Tol2_1", "Tol4_5")) 
+)
+
+# -------------------------------------------------------------------
+# 2. Estimate and Bootstrap Model 0.3
+# ------------------------------------------------------------------
+pls_0_3 <- estimate_pls(data = df, measurement_model = mm_0_3, structural_model = sm_baseline, inner_weights = path_weighting)
+set.seed(123)
+boot_0_3 <- bootstrap_model(pls_0_3, nboot = 500)
+
+# Generate Summaries for Evaluation
+sum_0_3 <- summary(pls_0_3)
+sum_boot_0_3 <- summary(boot_0_3)
+
+
+
+# # 1. R-Squared and Path Coefficients
+# cat("\n--- Structural Paths & R-Squared ---\n")
+# print(sum_0_3$paths)
+# 
+# # 2. Significance of the paths (t-values and p-values)
+# cat("\n--- Bootstrapped Path Significance ---\n")
+# print(sum_boot_0_3$bootstrapped_paths)
+# 
+# 
+# # 3. 
+# cat("\n--- Formative Indicators ---\n")
+# print(sum_boot_0_3$bootstrapped_weights)
+# 
+# 
+# cat("\n--- Reflective Indicators ---\n")
+# print(sum_boot_0_3$bootstrapped_loadings)
+# 
+# # 4. VIFs for Formative Indicators
+# cat("\n--- Variance Inflation Factors (VIF) ---\n")
+# print(sum_0_3$validity$vif_items)
+```
+
+
+
+### Evaluation 0.3
+```{r eval}
+
+cat("\n=======================================================\n")
+cat("EVALUATION CRITERIA: MEASUREMENT MODEL 0.3\n")
+cat("=======================================================\n")
+
+# ---------------------------------------------------------
+# 1. Collinearity Check (Outer VIF < 3.3 for Formatives)
+# ---------------------------------------------------------
+cat("\n[1] OUTER VIFs (Collinearity Check for Formative Constructs)\n")
+cat("Target: Values should be < 3.3. Single items will equal 1.\n")
+print(sum_0_3$validity$vif_items)
+
+# ---------------------------------------------------------
+# 2. Convergent Validity & Internal Consistency (Reflective)
+# ---------------------------------------------------------
+cat("\n[2] RELIABILITY & CONVERGENT VALIDITY (Reflective Constructs)\n")
+cat("Target: AVE >= 0.5, Composite Reliability (rhoC) >= 0.7, Alpha >= 0.7\n")
+print(sum_0_3$reliability)
+
+# ---------------------------------------------------------
+# 3. Discriminant Validity
+# ---------------------------------------------------------
+cat("\n[3A] DISCRIMINANT VALIDITY: HTMT (Reflective Constructs)\n")
+cat("Target: Values should be < 0.90\n")
+print(sum_0_3$validity$htmt)
+
+
+cat("\n[3B] DISCRIMINANT VALIDITY: Fornell-Larcker (Reflective Constructs)\n")
+# Target: The square root of AVE (diagonal) should be > correlations (off-diagonal)
+print(sum_0_3$validity$fl_criteria)
+
+
+cat("\n[3C] DISCRIMINANT VALIDITY: Cross-Loadings\n")
+cat("Target: An indicator should load highest on its own construct.\n")
+print(sum_0_3$validity$cross_loadings)
+
+# ---------------------------------------------------------
+# 4. Significance Testing
+# ---------------------------------------------------------
+cat("\n[4A] SIGNIFICANCE OF OUTER WEIGHTS (Formative Constructs)\n")
+cat("Target: t-value > 1.96 / p-value < 0.05\n")
+print(sum_boot_0_3$bootstrapped_weights)
+
+cat("\n[4B] SIGNIFICANCE OF OUTER LOADINGS (Reflective Constructs)\n")
+cat("Target: Loading > 0.5, t-value > 1.96 / p-value < 0.05\n")
+print(sum_boot_0_3$bootstrapped_loadings)
+
+cat("\n=======================================================\n")
+cat("STRUCTURAL MODEL EVALUATION\n")
+cat("=======================================================\n")
+
+cat("\n[5] EXPLANATORY POWER (R-Squared)\n")
+print(sum_0_3$paths[c("R^2", "AdjR^2"), ])
+
+cat("\n[6] SIGNIFICANCE OF STRUCTURAL PATHS (Inner Model)\n")
+print(sum_boot_0_3$bootstrapped_paths)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r interactions}
+
+
+# -------------------------------------------------------------------
+# Correct Implementation of Interaction in seminr
+# -------------------------------------------------------------------
+
+# 1. Define Measurement Model (Interaction MUST be defined here)
+mm_interaction <- constructs(
+  composite("ConflictExp_WB",            c("CP_WB1", "CP_WB2", "CP_WB4"), weights = mode_B),
+  composite("ConflictExp_A",             single_item("CP_A1")), 
+  composite("Prevention_Effectiveness",  single_item("PE")),
+  composite("Compensation_Experience",   single_item("CE0")),
+  composite("Compensation_Anticipation", single_item("CA3")), 
+  composite("Policy_Support",            c("PS1", "PS2"), weights = mode_B),
+  composite("Tangible_Costs",            c("TC1_DamagedArea", "TC2_EconomicLoss"), weights = mode_B),
+  composite("Intangible_Costs",          single_item("IC1")), 
+  reflective("Intangible_Benefits",      single_item("IB")),
+  reflective("Tolerance",                c("Tol1_5", "Tol2_1", "Tol4_5")),
+  
+  # DEFINE INTERACTION: iv = Independent Var, moderator = Moderator
+  interaction_term(iv = "Intangible_Costs", 
+                   moderator = "Compensation_Experience", 
+                   method = two_stage)
+)
+
+# 2. Define Structural Model (Refer to the interaction by its string name)
+# Note: seminr names it "Intangible_Costs*Compensation_Experience"
+sm_interaction <- relationships(
+  # Predictors of Costs/Benefits
+  paths(from = c("ConflictExp_WB", "ConflictExp_A", "Prevention_Effectiveness", 
+                 "Compensation_Experience", "Compensation_Anticipation", "Policy_Support"), 
+        to   = c("Tangible_Costs", "Intangible_Costs", "Intangible_Benefits")),
+  
+  # Predictors of Tolerance (Including the Interaction Name as a string)
+  paths(from = c("Intangible_Costs", "Compensation_Experience", "Intangible_Benefits", 
+                 "Policy_Support", "Tangible_Costs",
+                 "Intangible_Costs*Compensation_Experience"), 
+        to   = "Tolerance")
+)
+
+# 3. Estimate (Crucial: Use mm_interaction here!)
+pls_interaction <- estimate_pls(data = df, 
+                                measurement_model = mm_interaction, 
+                                structural_model = sm_interaction)
+
+# 4. Bootstrap and Summary
+boot_interaction <- bootstrap_model(pls_interaction, nboot = 500)
+sum_interaction <- summary(pls_interaction)
+sum_boot_interaction <- summary(boot_interaction)
+
+# Print results
+print(sum_boot_interaction$bootstrapped_paths)
+print(sum_interaction$fSquare)
+
+
+```
+
+
+
+```{r EFA}
+# -------------------------------------------------------------------
+# Exploratory Factor Analysis (EFA) for Discriminant Validity Check
+# -------------------------------------------------------------------
+library(psych)
+library(dplyr)
+
+# 1. Convert matrix to data frame and select columns
+# We use dplyr::select to ensure we use the correct function
+efa_data <- as.data.frame(Data_allinput) %>%
+  dplyr::select(PS1, PS2, IC1, IC2_1, IC2_2, IC2_3)
+
+# 2. Check suitability for Factor Analysis
+# KMO should be > 0.6; Bartlett's p < 0.05
+print(KMO(efa_data))
+print(cortest.bartlett(cor(efa_data), n = nrow(efa_data)))
+
+# 3. Run the EFA (Extracting 2 factors)
+# fm = "minres" is standard; rotate = "varimax" helps see clear separation
+efa_result <- fa(efa_data, nfactors = 2, rotate = "varimax", fm = "minres")
+
+# 4. Print the factor loadings with a cutoff of 0.3 to see "clean" clusters
+print(efa_result$loadings, cutoff = 0.3)
+
+```
+
+
+Goal: To prove mathematically whether Policy_Support and Intangible_Costs are two distinct psychological concepts, or if respondents blurred them together (which caused the HTMT > 0.90 violation).
+
+Note: To run a CFA, we must use the items from before we deleted them down to single items. We will test a 2-Factor Model against a 1-Factor Model.
+```{r CFA}
+# library(seminr)
+# 
+# # Ensure data is a data frame
+# df <- as.data.frame(Data_allinput)
+# 
+# # -------------------------------------------------------------------
+# # 1. Define Measurement Models for CFA
+# # -------------------------------------------------------------------
+# 
+# # Model A: The 2-Factor Theory (They are distinct)
+# cfa_mm_2f <- constructs(
+#   reflective("Policy_Support", c("PS1", "PS2")),
+#   reflective("Intangible_Costs", c("IC1", "IC2_1", "IC2_2"))
+# )
+# 
+# # Model B: The 1-Factor Theory (They are blurred together)
+# cfa_mm_1f <- constructs(
+#   reflective("Blurred_Construct", c("PS1", "PS2", "IC1", "IC2_1", "IC2_2"))
+# )
+# 
+# # -------------------------------------------------------------------
+# # 2. Estimate the CFA Models
+# # -------------------------------------------------------------------
+# # Instead of estimate_pls(), we use estimate_cfa()
+# cfa_2f <- estimate_cfa(data = df, measurement_model = cfa_mm_2f, check.gradient = FALSE)
+# cfa_1f <- estimate_cfa(data = df, measurement_model = cfa_mm_1f, check.gradient = FALSE)
+# 
+# # -------------------------------------------------------------------
+# # 3. Review and Compare Results
+# # -------------------------------------------------------------------
+# 
+# # Print standard CFA fit metrics (CFI, RMSEA, SRMR) for the 2-factor model
+# summary_cfa_2f <- summary(cfa_2f)
+# cat("\n--- CFA 2-Factor Fit Metrics ---\n")
+# print(summary_cfa_2f$quality$fit)
+# 
+# # Compare the two models to see which fits the data better.
+# # Because seminr uses lavaan under the hood, we can extract the base 
+# # lavaan models and run a standard Chi-Square Difference Test (ANOVA).
+# cat("\n--- CFA Model Comparison (2-Factor vs 1-Factor) ---\n")
+# anova_result <- anova(cfa_1f$lavaan_model, cfa_2f$lavaan_model)
+# print(anova_result)
+# 
+# 
+# inspect(cfa_2f$lavaan_model, "cor.lv")
+
+```
+The optimizer is saying it "converged" (found a result) but the gradient is not zero: the math is unstable because the two factors you are trying to separate (Policy_Support and Intangible_Costs) are so highly correlated that the software can't find a unique peak for each. They are essentially a single flat "plateau" in the mathematical space.
+
+This happens in CFA when:
++ Constructs are redundant: They are 95%+ the same thing.
++ Too few indicators: Policy_Support only has 2 items. In Covariance-Based SEM (CFA), a 2-item factor is often "under-identified" and unstable unless it correlates strongly with other things.
+
+To investigate the high HTMT value (1.112) between Policy Support and Intangible Costs, we attempted a Confirmatory Factor Analysis. The model initially struggled to converge because the mathematical gradient was unstable. This provides objective evidence that these two constructs share a very high degree of common variance in the residents' minds.
+
+
+```{r visualisation}
+# -------------------------------------------------------------------
+# Visualising Models using seminr
+# -------------------------------------------------------------------
+
+# 1. Plot Model 0 (The Kitchen Sink Baseline)
+# This will show all 34 indicators and the structural paths
+plot_m0 <- plot(pls_model0, title = "Model 0: Baseline Measurement Model")
+plot_m0
+# 
+# # 2. Plot Model 0.1 (Intermediate Cleanup)
+plot_m0_1 <- plot(pls_0_1, title = "Model 0.1: Refined Measurement Model")
+plot_m0_1
+
+# 3. Plot Model 0.2 (Strict Parsimony - Final Model)
+plot_m0_2 <- plot(pls_0_2, title = "Model 0.2: Final Parsimonious Model")
+plot_m0_2
+
+
+# This is the cleanest model, perfectly suited for your main presentation slide
+plot_m0_3 <- plot(pls_0_3, title = "Model 0.3: Final Parsimonious Model")
+plot_m0_3
+
+
+# -------------------------------------------------------------------
+# Exporting Plots for the Final Presentation
+# -------------------------------------------------------------------
+
+# Save as PDF (Best for keeping text sharp if you need to zoom in)
+save_plot("Model_0_Baseline.pdf", plot_m0)
+save_plot("Model_0_1_Intermediate.pdf", plot_m0_1)
+save_plot("Model_0_2_Final.pdf", plot_m0_2)
+save_plot("Model_0_3_Final.pdf", plot_m0_3)
+
+
+```
+
+
+```{r visualisation2}
+
+
+# Define a theme that hides specific paths (e.g., from demographics)
+# This keeps the latent variables in the plot but makes the lines invisible
+# or you can simply omit them from the structural model during the final plot-only run
+
+# Create a 'Plot-Only' structural model without demographics
+sm_plot <- relationships(
+  paths(from = c("ConflictExp_WB", "ConflictExp_A", "Prevention_Effectiveness", 
+                 "Compensation_Experience", "Compensation_Anticipation", "Policy_Support"), 
+        to   = c("Tangible_Costs", "Intangible_Costs", "Intangible_Benefits")),
+  
+  paths(from = c("Intangible_Costs", "Compensation_Experience", "Intangible_Benefits", 
+                 "Policy_Support", "Tangible_Costs", "Prevention_Effectiveness"), 
+        to   = "Tolerance")
+)
+
+# Estimate a temporary model JUST for the diagram
+pls_plot_only <- estimate_pls(data = df, 
+                              measurement_model = mm_0_3, 
+                              structural_model = sm_plot)
+
+# Plot it
+plot_final <- plot(pls_plot_only, title = "Model 0.3: Key Drivers of Tolerance")
+
+save_plot("Model_0.3_Final.pdf", plot_final)
+
+
+```
+
+
+
+
+
+
