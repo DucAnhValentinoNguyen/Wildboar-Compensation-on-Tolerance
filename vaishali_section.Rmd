@@ -1,0 +1,921 @@
+---
+title: "Wild Boar Tolerance Study"
+subtitle: "2.2 Robustness Checks | 3.4 Multi-Group Analysis"
+author: "Isha"
+date: "`r Sys.Date()`"
+output:
+  ioslides_presentation:
+    widescreen: true
+    smaller: false
+    self_contained: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo      = FALSE,
+  warning   = FALSE,
+  message   = FALSE,
+  fig.align = "center",
+  fig.width = 9,
+  fig.height = 5
+)
+```
+
+```{r libraries}
+library(readxl)
+library(tidyverse)
+library(seminr)
+library(ggplot2)
+library(dplyr)
+library(knitr)
+library(kableExtra)
+```
+
+```{r data-setup}
+# ── Load raw data (keep CE0 unscaled for group splitting) ────────────────────
+Data_all <- read_excel("3_Data.xlsx")
+
+# ── Save CE0 grouping BEFORE scaling ─────────────────────────────────────────
+CE0_group <- as.numeric(as.character(Data_all$CE0))
+
+# ── Select, clean, scale (same as Mengxi's pipeline) ─────────────────────────
+Data_allinput <- Data_all %>%
+  select(
+    "CP_WB1","CP_WB2","CP_WB3","CP_WB4",
+    "CP_A1","CP_A2","CP_A3",
+    "TC1_DamagedArea","TC2_EconomicLoss",
+    "IC1","IC2_1","IC2_2","IC2_3","IC2_DescriptiveAttitude",
+    "IB","Tol1_5","Tol2_1","Tol3_1","Tol4_5",
+    "PE","CE0","CE1","CE2","CA1","CA2","CA3","PS1","PS2",
+    "Q4_Gender","Q5_Age","Q6_Education","Q8_AnnualIncome",
+    "Q14_HouseholdAsset","Q14_CropAsset"
+  ) %>%
+  mutate(across(everything(), ~as.numeric(as.character(.)))) %>%
+  scale() %>%
+  as.data.frame()
+
+# ── Split groups using unscaled CE0 (before scaling) ─────────────────────────
+Data_comp   <- Data_allinput[CE0_group == 1, ]   # WITH compensation
+Data_nocomp <- Data_allinput[CE0_group == 0, ]   # WITHOUT compensation
+
+n_comp   <- nrow(Data_comp)
+n_nocomp <- nrow(Data_nocomp)
+```
+
+```{r helper-functions}
+# ── Helper: extract beta + bootstrap CI for one path ─────────────────────────
+get_path_info <- function(boot_summary, from, to) {
+  # seminr labels paths as "FROM  ->  TO" (two spaces each side of arrow)
+  row_label <- paste0(from, "  ->  ", to)
+  tryCatch({
+    b  <- boot_summary$bootstrapped_paths[row_label, "Original Est."]
+    lo <- boot_summary$bootstrapped_paths[row_label, "2.5% CI"]
+    hi <- boot_summary$bootstrapped_paths[row_label, "97.5% CI"]
+    data.frame(beta = b, ci_low = lo, ci_high = hi)
+  }, error = function(e) data.frame(beta = NA, ci_low = NA, ci_high = NA))
+}
+
+# ── Helper: extract R² for Tolerance ─────────────────────────────────────────
+get_r2 <- function(pls_summary) {
+  tryCatch(pls_summary$paths["Tolerance", "R^2"], error = function(e) NA)
+}
+```
+
+```{r baseline-model}
+# ── Baseline Measurement Model (M0.1 — Mengxi's refined model) ───────────────
+# RULE: single indicator  → single_item()
+#       multiple indicators, formative → composite(..., weights = mode_B)
+#       multiple indicators, reflective → reflective()
+
+mm_base <- constructs(
+  # Multi-item formative (mode B)
+  composite("ConflictExp_WB",   c("CP_WB1","CP_WB2","CP_WB4"),          weights = mode_B),
+  composite("ConflictExp_A",    c("CP_A1","CP_A2","CP_A3"),             weights = mode_B),
+  composite("Policy_Support",   c("PS1","PS2"),                          weights = mode_B),
+  composite("Tangible_Costs",   c("TC1_DamagedArea","TC2_EconomicLoss"), weights = mode_B),
+  composite("Intangible_Costs", c("IC1","IC2_1","IC2_2"),               weights = mode_B),
+
+  # Single-item constructs
+reflective("Prevention_Effectiveness",  "PE"),
+reflective("Compensation_Experience",   "CE0"),
+reflective("Compensation_Anticipation", "CA3"),
+reflective("Intangible_Benefits",       "IB"),
+  # Multi-item reflective (mode A)
+  reflective("Gender",         c("Q4_Gender")),
+  reflective("Age",            c("Q5_Age")),
+  reflective("Education",      c("Q6_Education")),
+  reflective("AnnualIncome",   c("Q8_AnnualIncome")),
+  reflective("HouseholdAsset", c("Q14_CropAsset")),
+  reflective("Tolerance",      c("Tol1_5","Tol2_1","Tol4_5"))
+)
+
+# ── Baseline Structural Model ─────────────────────────────────────────────────
+sm_base <- relationships(
+  paths(from = c("ConflictExp_WB","ConflictExp_A"),
+        to   = c("Prevention_Effectiveness","Compensation_Experience",
+                 "Compensation_Anticipation","Policy_Support")),
+  paths(from = c("ConflictExp_WB","ConflictExp_A","Prevention_Effectiveness",
+                 "Compensation_Experience","Compensation_Anticipation","Policy_Support"),
+        to   = c("Tangible_Costs","Intangible_Costs","Intangible_Benefits")),
+  paths(from = c("ConflictExp_WB","ConflictExp_A","Prevention_Effectiveness",
+                 "Compensation_Experience","Compensation_Anticipation","Policy_Support",
+                 "Tangible_Costs","Intangible_Costs","Intangible_Benefits",
+                 "Gender","Age","Education","AnnualIncome","HouseholdAsset"),
+        to   = "Tolerance")
+)
+
+# ── Estimate + bootstrap baseline ────────────────────────────────────────────
+pls_base      <- estimate_pls(Data_allinput, mm_base, sm_base,
+                               inner_weights = path_weighting)
+sum_base      <- summary(pls_base)
+boot_base     <- bootstrap_model(pls_base, nboot = 1000, seed = 42)
+sum_boot_base <- summary(boot_base, alpha = 0.05)
+```
+
+
+# Section 2.2 {.section-header}
+## Robustness Checks & Vibration of Effects
+
+
+## Why Robustness Checks?
+
+> "The aim is **not** to search for significant results, but to examine how sensitive the main findings are to different reasonable analytical choices."
+> — StaBLab Notes, Section 2.2
+
+**We test whether Compensation Experience → Tolerance stays stable when we:**
+
+- Drop socio-demographic control variables
+- Drop Tangible Costs (weak predictor)
+- Drop Policy Support (HTMT concern from Section 3.2)
+- Use IC1 only for Intangible Costs (conservative specification)
+- Use all 4 Tolerance indicators
+
+
+## Model Specifications Tested
+
+```{r specs-table}
+data.frame(
+  Model = c("M0.1 (Base)","M_noSocio","M_noTangible",
+            "M_noPS","M_IC1only","M_TolFull"),
+  Change = c(
+    "Mengxi's refined baseline — all predictors",
+    "Remove Gender, Age, Education, Income, Asset",
+    "Remove Tangible Costs",
+    "Remove Policy Support (HTMT = 1.112 issue)",
+    "Intangible Costs = IC1 only",
+    "Tolerance = Tol1_5, Tol2_1, Tol3_1, Tol4_5"
+  ),
+  Rationale = c(
+    "Reference model",
+    "Check if demographics inflate compensation effect",
+    "Test if tangible costs confound the relationship",
+    "Address discriminant validity concern",
+    "Most conservative IC specification",
+    "Alternative tolerance operationalisation"
+  )
+) %>%
+  kable(col.names = c("Model","Specification","Rationale"), align = "lll") %>%
+  kable_styling(font_size = 13, full_width = TRUE) %>%
+  row_spec(1, bold = TRUE, background = "#f0f4ff")
+```
+
+
+```{r alternative-models}
+
+# ── M_noSocio: drop all socio-demographic controls ───────────────────────────
+mm_noSocio <- constructs(
+  composite("ConflictExp_WB",   c("CP_WB1","CP_WB2","CP_WB4"),          weights = mode_B),
+  composite("ConflictExp_A",    c("CP_A1","CP_A2","CP_A3"),             weights = mode_B),
+  composite("Policy_Support",   c("PS1","PS2"),                          weights = mode_B),
+  composite("Tangible_Costs",   c("TC1_DamagedArea","TC2_EconomicLoss"), weights = mode_B),
+  composite("Intangible_Costs", c("IC1","IC2_1","IC2_2"),               weights = mode_B),
+  reflective("Prevention_Effectiveness",  "PE"),
+  reflective("Compensation_Experience",   "CE0"),
+  reflective("Compensation_Anticipation", "CA3"),
+  reflective("Intangible_Benefits",       "IB"),
+  reflective("Tolerance", c("Tol1_5","Tol2_1","Tol4_5"))
+)
+
+sm_noSocio <- relationships(
+  paths(from = c("ConflictExp_WB","ConflictExp_A"),
+        to   = c("Prevention_Effectiveness","Compensation_Experience",
+                 "Compensation_Anticipation","Policy_Support")),
+  paths(from = c("ConflictExp_WB","ConflictExp_A","Prevention_Effectiveness",
+                 "Compensation_Experience","Compensation_Anticipation","Policy_Support"),
+        to   = c("Tangible_Costs","Intangible_Costs","Intangible_Benefits")),
+  paths(from = c("ConflictExp_WB","ConflictExp_A","Prevention_Effectiveness",
+                 "Compensation_Experience","Compensation_Anticipation","Policy_Support",
+                 "Tangible_Costs","Intangible_Costs","Intangible_Benefits"),
+        to   = "Tolerance")
+)
+
+pls_noSocio      <- estimate_pls(Data_allinput, mm_noSocio, sm_noSocio,
+                                  inner_weights = path_weighting)
+boot_noSocio     <- bootstrap_model(pls_noSocio, nboot = 1000, seed = 42)
+sum_boot_noSocio <- summary(boot_noSocio, alpha = 0.05)
+
+
+# ── M_noTangible: drop Tangible Costs ────────────────────────────────────────
+mm_noTang <- constructs(
+  composite("ConflictExp_WB",   c("CP_WB1","CP_WB2","CP_WB4"), weights = mode_B),
+  composite("ConflictExp_A",    c("CP_A1","CP_A2","CP_A3"),    weights = mode_B),
+  composite("Policy_Support",   c("PS1","PS2"),                 weights = mode_B),
+  composite("Intangible_Costs", c("IC1","IC2_1","IC2_2"),      weights = mode_B),
+  reflective("Prevention_Effectiveness",  "PE"),
+  reflective("Compensation_Experience",   "CE0"),
+  reflective("Compensation_Anticipation", "CA3"),
+  reflective("Intangible_Benefits",       "IB"),
+  reflective("Gender",         c("Q4_Gender")),
+  reflective("Age",            c("Q5_Age")),
+  reflective("Education",      c("Q6_Education")),
+  reflective("AnnualIncome",   c("Q8_AnnualIncome")),
+  reflective("HouseholdAsset", c("Q14_CropAsset")),
+  reflective("Tolerance",      c("Tol1_5","Tol2_1","Tol4_5"))
+)
+
+sm_noTang <- relationships(
+  paths(from = c("ConflictExp_WB","ConflictExp_A"),
+        to   = c("Prevention_Effectiveness","Compensation_Experience",
+                 "Compensation_Anticipation","Policy_Support")),
+  paths(from = c("ConflictExp_WB","ConflictExp_A","Prevention_Effectiveness",
+                 "Compensation_Experience","Compensation_Anticipation","Policy_Support"),
+        to   = c("Intangible_Costs","Intangible_Benefits")),
+  paths(from = c("ConflictExp_WB","ConflictExp_A","Prevention_Effectiveness",
+                 "Compensation_Experience","Compensation_Anticipation","Policy_Support",
+                 "Intangible_Costs","Intangible_Benefits",
+                 "Gender","Age","Education","AnnualIncome","HouseholdAsset"),
+        to   = "Tolerance")
+)
+
+pls_noTang      <- estimate_pls(Data_allinput, mm_noTang, sm_noTang,
+                                 inner_weights = path_weighting)
+boot_noTang     <- bootstrap_model(pls_noTang, nboot = 1000, seed = 42)
+sum_boot_noTang <- summary(boot_noTang, alpha = 0.05)
+
+
+# ── M_noPS: drop Policy Support ──────────────────────────────────────────────
+mm_noPS <- constructs(
+  composite("ConflictExp_WB",   c("CP_WB1","CP_WB2","CP_WB4"),          weights = mode_B),
+  composite("ConflictExp_A",    c("CP_A1","CP_A2","CP_A3"),             weights = mode_B),
+  composite("Tangible_Costs",   c("TC1_DamagedArea","TC2_EconomicLoss"), weights = mode_B),
+  composite("Intangible_Costs", c("IC1","IC2_1","IC2_2"),               weights = mode_B),
+  reflective("Prevention_Effectiveness",  "PE"),
+  reflective("Compensation_Experience",   "CE0"),
+  reflective("Compensation_Anticipation", "CA3"),
+  reflective("Intangible_Benefits",       "IB"),
+  reflective("Gender",         c("Q4_Gender")),
+  reflective("Age",            c("Q5_Age")),
+  reflective("Education",      c("Q6_Education")),
+  reflective("AnnualIncome",   c("Q8_AnnualIncome")),
+  reflective("HouseholdAsset", c("Q14_CropAsset")),
+  reflective("Tolerance",      c("Tol1_5","Tol2_1","Tol4_5"))
+)
+
+sm_noPS <- relationships(
+  paths(from = c("ConflictExp_WB","ConflictExp_A"),
+        to   = c("Prevention_Effectiveness","Compensation_Experience",
+                 "Compensation_Anticipation")),
+  paths(from = c("ConflictExp_WB","ConflictExp_A","Prevention_Effectiveness",
+                 "Compensation_Experience","Compensation_Anticipation"),
+        to   = c("Tangible_Costs","Intangible_Costs","Intangible_Benefits")),
+  paths(from = c("ConflictExp_WB","ConflictExp_A","Prevention_Effectiveness",
+                 "Compensation_Experience","Compensation_Anticipation",
+                 "Tangible_Costs","Intangible_Costs","Intangible_Benefits",
+                 "Gender","Age","Education","AnnualIncome","HouseholdAsset"),
+        to   = "Tolerance")
+)
+
+pls_noPS      <- estimate_pls(Data_allinput, mm_noPS, sm_noPS,
+                               inner_weights = path_weighting)
+boot_noPS     <- bootstrap_model(pls_noPS, nboot = 1000, seed = 42)
+sum_boot_noPS <- summary(boot_noPS, alpha = 0.05)
+
+
+# ── M_IC1only: Intangible Costs = IC1 only (single item) ─────────────────────
+mm_IC1 <- constructs(
+  composite("ConflictExp_WB",   c("CP_WB1","CP_WB2","CP_WB4"),          weights = mode_B),
+  composite("ConflictExp_A",    c("CP_A1","CP_A2","CP_A3"),             weights = mode_B),
+  composite("Policy_Support",   c("PS1","PS2"),                          weights = mode_B),
+  composite("Tangible_Costs",   c("TC1_DamagedArea","TC2_EconomicLoss"), weights = mode_B),
+  reflective("Prevention_Effectiveness",  "PE"),
+  reflective("Compensation_Experience",   "CE0"),
+  reflective("Compensation_Anticipation", "CA3"),
+  reflective("Intangible_Costs",          "IC1"),
+  reflective("Intangible_Benefits",       "IB"),
+  reflective("Gender",         c("Q4_Gender")),
+  reflective("Age",            c("Q5_Age")),
+  reflective("Education",      c("Q6_Education")),
+  reflective("AnnualIncome",   c("Q8_AnnualIncome")),
+  reflective("HouseholdAsset", c("Q14_CropAsset")),
+  reflective("Tolerance",      c("Tol1_5","Tol2_1","Tol4_5"))
+)
+
+pls_IC1      <- estimate_pls(Data_allinput, mm_IC1, sm_base,
+                              inner_weights = path_weighting)
+boot_IC1     <- bootstrap_model(pls_IC1, nboot = 1000, seed = 42)
+sum_boot_IC1 <- summary(boot_IC1, alpha = 0.05)
+
+
+# ── M_TolFull: Tolerance with all 4 items ────────────────────────────────────
+mm_TolFull <- constructs(
+  composite("ConflictExp_WB",   c("CP_WB1","CP_WB2","CP_WB4"),          weights = mode_B),
+  composite("ConflictExp_A",    c("CP_A1","CP_A2","CP_A3"),             weights = mode_B),
+  composite("Policy_Support",   c("PS1","PS2"),                          weights = mode_B),
+  composite("Tangible_Costs",   c("TC1_DamagedArea","TC2_EconomicLoss"), weights = mode_B),
+  composite("Intangible_Costs", c("IC1","IC2_1","IC2_2"),               weights = mode_B),
+  reflective("Prevention_Effectiveness",  "PE"),
+  reflective("Compensation_Experience",   "CE0"),
+  reflective("Compensation_Anticipation", "CA3"),
+  reflective("Intangible_Benefits",       "IB"),
+  reflective("Gender",         c("Q4_Gender")),
+  reflective("Age",            c("Q5_Age")),
+  reflective("Education",      c("Q6_Education")),
+  reflective("AnnualIncome",   c("Q8_AnnualIncome")),
+  reflective("HouseholdAsset", c("Q14_CropAsset")),
+  reflective("Tolerance",      c("Tol1_5","Tol2_1","Tol3_1","Tol4_5"))
+)
+
+sm_TolFull <- relationships(
+  paths(from = c("ConflictExp_WB","ConflictExp_A"),
+        to   = c("Prevention_Effectiveness","Compensation_Experience",
+                 "Compensation_Anticipation","Policy_Support")),
+  paths(from = c("ConflictExp_WB","ConflictExp_A","Prevention_Effectiveness",
+                 "Compensation_Experience","Compensation_Anticipation","Policy_Support"),
+        to   = c("Tangible_Costs","Intangible_Costs","Intangible_Benefits")),
+  paths(from = c("ConflictExp_WB","ConflictExp_A","Prevention_Effectiveness",
+                 "Compensation_Experience","Compensation_Anticipation","Policy_Support",
+                 "Tangible_Costs","Intangible_Costs","Intangible_Benefits",
+                 "Gender","Age","Education","AnnualIncome","HouseholdAsset"),
+        to   = "Tolerance")
+)
+
+pls_TolFull      <- estimate_pls(Data_allinput, mm_TolFull, sm_TolFull,
+                                  inner_weights = path_weighting)
+boot_TolFull     <- bootstrap_model(pls_TolFull, nboot = 1000, seed = 42)
+sum_boot_TolFull <- summary(boot_TolFull, alpha = 0.05)
+
+
+# ── Compile robustness results ────────────────────────────────────────────────
+from_var <- "Compensation_Experience"
+to_var   <- "Tolerance"
+
+robustness_results <- bind_rows(
+  data.frame(Model = "M0.1 (Base)",  get_path_info(sum_boot_base,     from_var, to_var)),
+  data.frame(Model = "M_noSocio",    get_path_info(sum_boot_noSocio,  from_var, to_var)),
+  data.frame(Model = "M_noTangible", get_path_info(sum_boot_noTang,   from_var, to_var)),
+  data.frame(Model = "M_noPS",       get_path_info(sum_boot_noPS,     from_var, to_var)),
+  data.frame(Model = "M_IC1only",    get_path_info(sum_boot_IC1,      from_var, to_var)),
+  data.frame(Model = "M_TolFull",    get_path_info(sum_boot_TolFull,  from_var, to_var))
+)
+
+robustness_results$Model <- factor(robustness_results$Model,
+                                    levels = rev(robustness_results$Model))
+
+# ── R² across specs ───────────────────────────────────────────────────────────
+r2_results <- data.frame(
+  Model = c("M0.1 (Base)","M_noSocio","M_noTangible",
+            "M_noPS","M_IC1only","M_TolFull"),
+  R2    = round(c(
+    get_r2(sum_base),
+    get_r2(summary(pls_noSocio)),
+    get_r2(summary(pls_noTang)),
+    get_r2(summary(pls_noPS)),
+    get_r2(summary(pls_IC1)),
+    get_r2(summary(pls_TolFull))
+  ), 4)
+)
+r2_results$Model <- factor(r2_results$Model, levels = r2_results$Model)
+```
+
+
+## Vibration of Effects: Compensation Experience → Tolerance
+
+```{r vibration-plot, fig.height=5.5}
+ggplot(robustness_results, aes(x = beta, y = Model)) +
+  geom_vline(xintercept = 0, linetype = "dashed",
+             color = "grey50", linewidth = 0.7) +
+ geom_errorbar(aes(xmin = ci_low, xmax = ci_high),
+              width = 0.25, color = "#4a7ab5", linewidth = 0.9,
+              orientation = "y") +
+  geom_point(aes(color = beta < 0), size = 4.5) +
+  scale_color_manual(
+    values = c("TRUE"  = "#c0392b", "FALSE" = "#27ae60"),
+    labels = c("TRUE"  = "Negative (expected)", "FALSE" = "Positive"),
+    name   = "Direction"
+  ) +
+  geom_text(aes(label = round(beta, 3)),
+            hjust = -0.4, size = 3.6, color = "grey25") +
+  labs(
+    title    = "Vibration of Effects: Compensation Experience → Tolerance",
+    subtitle = "Path coefficients (β) with 95% bootstrap CIs across 6 model specifications",
+    x        = "Standardised Path Coefficient (β)",
+    y        = NULL
+  ) +
+  xlim(
+    min(robustness_results$ci_low,  na.rm = TRUE) - 0.05,
+    max(robustness_results$ci_high, na.rm = TRUE) + 0.15
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title       = element_text(face = "bold", size = 14),
+    plot.subtitle    = element_text(color = "grey40", size = 11),
+    legend.position  = "bottom",
+    panel.grid.minor = element_blank()
+  )
+```
+
+
+## R² Stability Across Specifications
+
+```{r r2-plot, fig.height=4.5}
+# Step 1: recreate r2_results with the fixed function
+r2_results <- data.frame(
+  Model = c("M0.1 (Base)","M_noSocio","M_noTangible",
+            "M_noPS","M_IC1only","M_TolFull"),
+  R2    = round(c(
+    get_r2(sum_base),
+    get_r2(summary(pls_noSocio)),
+    get_r2(summary(pls_noTang)),
+    get_r2(summary(pls_noPS)),
+    get_r2(summary(pls_IC1)),
+    get_r2(summary(pls_TolFull))
+  ), 4)
+)
+r2_results$Model <- factor(r2_results$Model, levels = r2_results$Model)
+
+# Step 2: check it has real values before plotting
+print(r2_results)
+
+# Step 3: then run the ggplot code
+ggplot(r2_results, aes(x = Model, y = R2, fill = Model)) +
+  geom_col(width = 0.6, show.legend = FALSE) +
+  geom_text(aes(label = round(R2, 3)),
+            vjust = -0.5, size = 4, fontface = "bold") +
+  geom_hline(yintercept = r2_results$R2[1], linetype = "dashed",
+             color = "#c0392b", linewidth = 0.8) +
+  annotate("text", x = 0.6, y = r2_results$R2[1] + 0.005,
+           label = "Baseline R²", color = "#c0392b", hjust = 0, size = 3.5) +
+  scale_fill_brewer(palette = "Blues") +
+  scale_y_continuous(limits = c(0, max(r2_results$R2, na.rm = TRUE) + 0.05)) +
+  labs(
+    title    = "R² for Tolerance Across Specifications",
+    subtitle = "Model explanatory power remains stable across analytical choices",
+    x = NULL, y = "R²"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title       = element_text(face = "bold", size = 14),
+    plot.subtitle    = element_text(color = "grey40"),
+    axis.text.x      = element_text(angle = 25, hjust = 1),
+    panel.grid.minor = element_blank()
+  )
+```
+
+
+## Section 2.2 Key Takeaways
+
+**Finding: The negative effect of Compensation Experience → Tolerance is robust.**
+
+- Direction of β is **consistent across all 6 specifications**
+- Magnitude stays within a **narrow range** regardless of which controls/indicators are used
+- R² is **stable** — the model is not over-reliant on any single analytical choice
+- This rules out **p-hacking** — the result is not produced by selective model building
+
+> **Conclusion:** The negative association between compensation experience and tolerance is a genuine, replicable finding — not an artefact of the chosen model specification.
+
+
+# Section 3.4 {.section-header}
+## Multi-Group Analysis (MGA)
+
+
+## Research Question
+
+**Do structural relationships differ between:**
+
+- 🟦 Residents **WITH** compensation experience (`CE0 = 1`)
+- 🟥 Residents **WITHOUT** compensation experience (`CE0 = 0`)
+
+**Method:** Permutation-based MGA (n = 1,000 permutations)
+
+**Two MGA versions are compared:**
+
+- **MGA 1:** Full model including socio-demographic controls
+- **MGA 2:** Parsimonious model excluding socio-demographic controls — tests whether group differences are driven by demographics or core structural paths
+
+
+## Sample Sizes per Group
+
+```{r sample-table}
+data.frame(
+  Group      = c("With Compensation (CE0 = 1)",
+                 "Without Compensation (CE0 = 0)",
+                 "Total"),
+  N          = c(n_comp, n_nocomp, n_comp + n_nocomp),
+  Percentage = paste0(round(c(n_comp, n_nocomp, n_comp + n_nocomp) /
+                              (n_comp + n_nocomp) * 100, 1), "%")
+) %>%
+  kable(col.names = c("Group","n","%"), align = "lrr") %>%
+  kable_styling(font_size = 15, full_width = FALSE) %>%
+  row_spec(1, background = "#dce9f7") %>%
+  row_spec(2, background = "#fde8e8") %>%
+  row_spec(3, bold = TRUE)
+```
+
+> ⚠️ **Note:** Unequal group sizes — permutation-based MGA is the appropriate test as it does not assume equal sample sizes or multivariate normality.
+
+
+```{r mga-estimation}
+# ── MGA 1: Full model (with socio) ───────────────────────────────────────────
+mm_mga <- constructs(
+  composite("ConflictExp_WB",   c("CP_WB1","CP_WB2","CP_WB4"),          weights = mode_B),
+  composite("ConflictExp_A",    c("CP_A1","CP_A2","CP_A3"),             weights = mode_B),
+  composite("Policy_Support",   c("PS1","PS2"),                          weights = mode_B),
+  composite("Tangible_Costs",   c("TC1_DamagedArea","TC2_EconomicLoss"), weights = mode_B),
+  composite("Intangible_Costs", c("IC1","IC2_1","IC2_2"),               weights = mode_B),
+  reflective("Prevention_Effectiveness",  "PE"),
+  reflective("Compensation_Anticipation", "CA3"),
+  reflective("Intangible_Benefits",       "IB"),
+  reflective("Gender",         c("Q4_Gender")),
+  reflective("Age",            c("Q5_Age")),
+  reflective("Education",      c("Q6_Education")),
+  reflective("AnnualIncome",   c("Q8_AnnualIncome")),
+  reflective("HouseholdAsset", c("Q14_CropAsset")),
+  reflective("Tolerance",      c("Tol1_5","Tol2_1","Tol4_5"))
+)
+
+sm_mga <- relationships(
+  paths(from = c("ConflictExp_WB","ConflictExp_A"),
+        to   = c("Prevention_Effectiveness","Compensation_Anticipation","Policy_Support")),
+  paths(from = c("ConflictExp_WB","ConflictExp_A","Prevention_Effectiveness",
+                 "Compensation_Anticipation","Policy_Support"),
+        to   = c("Tangible_Costs","Intangible_Costs","Intangible_Benefits")),
+  paths(from = c("ConflictExp_WB","ConflictExp_A","Prevention_Effectiveness",
+                 "Compensation_Anticipation","Policy_Support",
+                 "Tangible_Costs","Intangible_Costs","Intangible_Benefits",
+                 "Gender","Age","Education","AnnualIncome","HouseholdAsset"),
+        to   = "Tolerance")
+)
+
+# ── MGA 2: Parsimonious model (no socio, IC1 only, CP_A1 only) ───────────────
+mm_mga2 <- constructs(
+  composite("ConflictExp_WB",            c("CP_WB1","CP_WB2","CP_WB4"),          weights = mode_B),
+  composite("ConflictExp_A",             single_item("CP_A1")),
+  composite("Prevention_Effectiveness",  single_item("PE")),
+  composite("Compensation_Anticipation", single_item("CA3")),
+  composite("Policy_Support",            c("PS1","PS2"),                          weights = mode_B),
+  composite("Tangible_Costs",            c("TC1_DamagedArea","TC2_EconomicLoss"), weights = mode_B),
+  composite("Intangible_Costs",          single_item("IC1")),
+  reflective("Intangible_Benefits",      single_item("IB")),
+  reflective("Tolerance",                c("Tol1_5","Tol2_1","Tol4_5"))
+)
+
+sm_mga2 <- relationships(
+  paths(from = c("ConflictExp_WB","ConflictExp_A"),
+        to   = c("Prevention_Effectiveness","Compensation_Anticipation","Policy_Support")),
+  paths(from = c("ConflictExp_WB","ConflictExp_A","Prevention_Effectiveness",
+                 "Compensation_Anticipation","Policy_Support"),
+        to   = c("Tangible_Costs","Intangible_Costs","Intangible_Benefits")),
+  paths(from = c("ConflictExp_WB","ConflictExp_A","Prevention_Effectiveness",
+                 "Compensation_Anticipation","Policy_Support",
+                 "Tangible_Costs","Intangible_Costs","Intangible_Benefits"),
+        to   = "Tolerance")
+)
+
+# ── Estimate per group — MGA 1 ────────────────────────────────────────────────
+pls_comp   <- estimate_pls(Data_comp,   mm_mga,  sm_mga,  inner_weights = path_weighting)
+pls_nocomp <- estimate_pls(Data_nocomp, mm_mga,  sm_mga,  inner_weights = path_weighting)
+
+# ── Estimate per group — MGA 2 ────────────────────────────────────────────────
+pls_comp2   <- estimate_pls(Data_comp,   mm_mga2, sm_mga2, inner_weights = path_weighting)
+pls_nocomp2 <- estimate_pls(Data_nocomp, mm_mga2, sm_mga2, inner_weights = path_weighting)
+
+# ── Define predictors ─────────────────────────────────────────────────────────
+predictors_to_tol  <- rownames(pls_comp$path_coef)[!rownames(pls_comp$path_coef)  %in% "Tolerance"]
+predictors_to_tol2 <- rownames(pls_comp2$path_coef)[!rownames(pls_comp2$path_coef) %in% "Tolerance"]
+
+# ── Bootstrap ─────────────────────────────────────────────────────────────────
+set.seed(123)
+boot_comp      <- bootstrap_model(pls_comp,   nboot = 1000)
+boot_nocomp    <- bootstrap_model(pls_nocomp, nboot = 1000)
+boot_comp2     <- bootstrap_model(pls_comp2,  nboot = 1000)
+boot_nocomp2   <- bootstrap_model(pls_nocomp2,nboot = 1000)
+
+boot_comp_sum   <- summary(boot_comp,    alpha = 0.05)
+boot_nocomp_sum <- summary(boot_nocomp,  alpha = 0.05)
+boot_comp_sum2  <- summary(boot_comp2,   alpha = 0.05)
+boot_nocomp_sum2<- summary(boot_nocomp2, alpha = 0.05)
+
+# ── Permutation MGA helper ────────────────────────────────────────────────────
+run_permutation_mga <- function(pls_c, pls_n, mm, sm, predictors, n_c, n_n) {
+  obs_c    <- pls_c$path_coef[predictors, "Tolerance"]
+  obs_n    <- pls_n$path_coef[predictors, "Tolerance"]
+  obs_diff <- obs_c - obs_n
+
+  Data_comb  <- rbind(Data_comp, Data_nocomp)
+  grp_labels <- c(rep(1, n_c), rep(0, n_n))
+
+  set.seed(42)
+  perm_diffs <- replicate(1000, {
+    pl <- sample(grp_labels)
+    dc <- Data_comb[pl == 1, ]
+    dn <- Data_comb[pl == 0, ]
+    mc <- tryCatch(estimate_pls(dc, mm, sm, inner_weights = path_weighting), error = function(e) NULL)
+    mn <- tryCatch(estimate_pls(dn, mm, sm, inner_weights = path_weighting), error = function(e) NULL)
+    if (is.null(mc) | is.null(mn)) return(rep(NA, length(predictors)))
+    mc$path_coef[predictors, "Tolerance"] - mn$path_coef[predictors, "Tolerance"]
+  })
+
+  p_vals <- sapply(seq_along(predictors), function(i) {
+    nd <- na.omit(perm_diffs[i, ])
+    mean(abs(nd) >= abs(obs_diff[i]))
+  })
+
+  data.frame(
+    Predictor   = predictors,
+    Beta_comp   = round(obs_c,    3),
+    Beta_nocomp = round(obs_n,    3),
+    Delta       = round(obs_diff, 3),
+    p_value     = round(p_vals,   3),
+    Significant = ifelse(p_vals < 0.05, "Yes *", "No")
+  )
+}
+
+# ── Run both MGAs ─────────────────────────────────────────────────────────────
+mga_df  <- run_permutation_mga(pls_comp,  pls_nocomp,  mm_mga,  sm_mga,
+                                predictors_to_tol,  n_comp, n_nocomp)
+mga_df2 <- run_permutation_mga(pls_comp2, pls_nocomp2, mm_mga2, sm_mga2,
+                                predictors_to_tol2, n_comp, n_nocomp)
+
+# ── Plot data ─────────────────────────────────────────────────────────────────
+make_plot_df <- function(mga_df, predictors) {
+  data.frame(
+    Predictor    = predictors,
+    With_Comp    = mga_df$Beta_comp,
+    Without_Comp = mga_df$Beta_nocomp
+  ) %>%
+    pivot_longer(cols = c(With_Comp, Without_Comp),
+                 names_to = "Group", values_to = "Beta") %>%
+    mutate(
+      Group     = recode(Group,
+                         "With_Comp"    = "With Compensation",
+                         "Without_Comp" = "Without Compensation"),
+      Predictor = str_replace_all(Predictor, "_", " ")
+    )
+}
+
+plot_df  <- make_plot_df(mga_df,  predictors_to_tol)
+plot_df2 <- make_plot_df(mga_df2, predictors_to_tol2)
+
+diff_df  <- data.frame(Predictor = str_replace_all(predictors_to_tol,  "_", " "),
+                        Delta = mga_df$Delta,  p_value = mga_df$p_value)
+diff_df2 <- data.frame(Predictor = str_replace_all(predictors_to_tol2, "_", " "),
+                        Delta = mga_df2$Delta, p_value = mga_df2$p_value)
+
+# ── Bootstrap CI helper ───────────────────────────────────────────────────────
+get_boot_paths <- function(boot_sum, group_label) {
+  df <- as.data.frame(boot_sum$bootstrapped_paths)
+  df$Path <- rownames(df)
+  df %>%
+    filter(grepl("->  Tolerance", Path)) %>%
+    mutate(
+      Predictor = str_replace(Path, "  ->  Tolerance", ""),
+      Predictor = str_replace_all(Predictor, "_", " "),
+      Group     = group_label
+    ) %>%
+    select(Predictor, Group,
+           Beta  = `Original Est.`,
+           Lower = `2.5% CI`,
+           Upper = `97.5% CI`)
+}
+
+ci_df  <- bind_rows(get_boot_paths(boot_comp_sum,   "With Compensation"),
+                    get_boot_paths(boot_nocomp_sum,  "Without Compensation"))
+ci_df2 <- bind_rows(get_boot_paths(boot_comp_sum2,  "With Compensation"),
+                    get_boot_paths(boot_nocomp_sum2, "Without Compensation"))
+```
+
+
+## MGA 1 (Full Model) — Structural Tables
+
+```{r mga1-tables}
+build_path_table <- function(boot_sum, group_label, n) {
+  df <- as.data.frame(boot_sum$bootstrapped_paths)
+  df$Path <- rownames(df)
+  df_tol <- df %>%
+    filter(grepl("->  Tolerance", Path)) %>%
+    mutate(
+      From      = str_replace(Path, "  ->  Tolerance", ""),
+      Original  = round(`Original Est.`, 3),
+      MeanBoot  = round(`Bootstrap Mean`, 3),
+      StdError  = round(`Bootstrap SD`, 3),
+      CI_low    = round(`2.5% CI`, 3),
+      CI_high   = round(`97.5% CI`, 3),
+      T_val     = round(`T Stat.`, 3),
+      P_val     = `Bootstrap P Val`,
+      Sig       = case_when(
+        P_val < 0.001 ~ paste0(T_val, "***"),
+        P_val < 0.01  ~ paste0(T_val, "**"),
+        P_val < 0.05  ~ paste0(T_val, "*"),
+        TRUE          ~ as.character(T_val)
+      ),
+      Significant = P_val < 0.05
+    ) %>%
+    select(From, Original, MeanBoot, StdError, CI_low, CI_high, Sig, Significant)
+
+  df_tol %>%
+    select(-Significant) %>%
+    rename("From" = From, "Original" = Original, "Mean.Boot" = MeanBoot,
+           "Std.Error" = StdError, "2.5% CI" = CI_low,
+           "97.5% CI"  = CI_high, "T value" = Sig) %>%
+    kable(align = "lrrrrrr",
+          caption = paste0(group_label, " (n=", n, ") — Paths → Tolerance")) %>%
+    kable_styling(font_size = 11, full_width = TRUE,
+                  bootstrap_options = c("bordered","condensed")) %>%
+    row_spec(0, bold = TRUE, background = "#C6EFCE", color = "black") %>%
+    row_spec(which( df_tol$Significant), background = "#FCE4D6", bold = TRUE) %>%
+    row_spec(which(!df_tol$Significant), background = "white") %>%
+    column_spec(1, bold = TRUE, width = "5cm") %>%
+    column_spec(7, bold = TRUE,
+                color = ifelse(df_tol$Significant, "#c0392b", "black"))
+}
+
+build_path_table(boot_comp_sum,  "With Compensation",    n_comp)
+build_path_table(boot_nocomp_sum,"Without Compensation", n_nocomp)
+```
+
+
+## MGA 2 (Parsimonious — No Socio) — Structural Tables
+
+```{r mga2-tables}
+build_path_table(boot_comp_sum2,  "With Compensation — No Socio Controls",    n_comp)
+build_path_table(boot_nocomp_sum2,"Without Compensation — No Socio Controls", n_nocomp)
+```
+
+
+## Path Coefficients → Tolerance: MGA 1 (Full Model)
+
+```{r mga1-barplot, fig.height=5.5}
+ggplot(plot_df, aes(x = reorder(Predictor, abs(Beta)), y = Beta, fill = Group)) +
+  geom_col(position = position_dodge(0.7), width = 0.65) +
+  geom_hline(yintercept = 0, color = "grey40", linewidth = 0.6) +
+  scale_fill_manual(values = c("With Compensation" = "#4a7ab5",
+                                "Without Compensation" = "#c0392b")) +
+  coord_flip() +
+  labs(title    = "MGA 1 (Full): Path Coefficients → Tolerance",
+       subtitle = paste0("With compensation: n = ", n_comp,
+                         "  |  Without: n = ", n_nocomp),
+       x = NULL, y = "Path Coefficient (β)", fill = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(plot.title = element_text(face = "bold", size = 13),
+        plot.subtitle = element_text(color = "grey40"),
+        legend.position = "bottom", panel.grid.minor = element_blank())
+```
+
+
+## Path Coefficients → Tolerance: MGA 2 (No Socio)
+
+```{r mga2-barplot, fig.height=5}
+ggplot(plot_df2, aes(x = reorder(Predictor, abs(Beta)), y = Beta, fill = Group)) +
+  geom_col(position = position_dodge(0.7), width = 0.65) +
+  geom_hline(yintercept = 0, color = "grey40", linewidth = 0.6) +
+  scale_fill_manual(values = c("With Compensation" = "#4a7ab5",
+                                "Without Compensation" = "#c0392b")) +
+  coord_flip() +
+  labs(title    = "MGA 2 (No Socio): Path Coefficients → Tolerance",
+       subtitle = "Parsimonious specification — socio-demographic controls excluded",
+       x = NULL, y = "Path Coefficient (β)", fill = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(plot.title = element_text(face = "bold", size = 13),
+        plot.subtitle = element_text(color = "grey40"),
+        legend.position = "bottom", panel.grid.minor = element_blank())
+```
+
+
+## Bootstrap CIs: MGA 1 (Full Model)
+
+```{r ci-plot1, fig.height=5.5}
+ggplot(ci_df, aes(x = Beta, y = reorder(Predictor, abs(Beta)), color = Group)) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey50", linewidth = 0.7) +
+  geom_errorbar(aes(xmin = Lower, xmax = Upper),
+                width = 0.3, linewidth = 0.8,
+                position = position_dodge(0.5), orientation = "y") +
+  geom_point(size = 3, position = position_dodge(0.5)) +
+  scale_color_manual(values = c("With Compensation" = "#4a7ab5",
+                                 "Without Compensation" = "#c0392b")) +
+  labs(title    = "MGA 1 (Full): Bootstrap CIs → Tolerance",
+       subtitle = "Overlapping CIs indicate no significant group difference",
+       x = "Path Coefficient (β)", y = NULL, color = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(plot.title = element_text(face = "bold", size = 13),
+        plot.subtitle = element_text(color = "grey40"),
+        legend.position = "bottom", panel.grid.minor = element_blank())
+```
+
+
+## Bootstrap CIs: MGA 2 (No Socio)
+
+```{r ci-plot2, fig.height=4.5}
+ggplot(ci_df2, aes(x = Beta, y = reorder(Predictor, abs(Beta)), color = Group)) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey50", linewidth = 0.7) +
+  geom_errorbar(aes(xmin = Lower, xmax = Upper),
+                width = 0.3, linewidth = 0.8,
+                position = position_dodge(0.5), orientation = "y") +
+  geom_point(size = 3, position = position_dodge(0.5)) +
+  scale_color_manual(values = c("With Compensation" = "#4a7ab5",
+                                 "Without Compensation" = "#c0392b")) +
+  labs(title    = "MGA 2 (No Socio): Bootstrap CIs → Tolerance",
+       subtitle = "Parsimonious specification — core structural paths only",
+       x = "Path Coefficient (β)", y = NULL, color = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(plot.title = element_text(face = "bold", size = 13),
+        plot.subtitle = element_text(color = "grey40"),
+        legend.position = "bottom", panel.grid.minor = element_blank())
+```
+
+
+## Permutation Test: MGA 1 (Full Model)
+
+```{r mga1-perm-table}
+mga_df %>%
+  mutate(Predictor = str_replace_all(Predictor, "_", " ")) %>%
+  rename("β With Comp."     = Beta_comp,
+         "β Without Comp."  = Beta_nocomp,
+         "Δβ"               = Delta,
+         "p-value"          = p_value,
+         "Sig."             = Significant) %>%
+  kable(align = "lrrrrr", booktabs = TRUE) %>%
+  kable_styling(font_size = 11, full_width = TRUE,
+                bootstrap_options = c("bordered","condensed")) %>%
+  row_spec(0, bold = TRUE, background = "#C6EFCE", color = "black") %>%
+  row_spec(which(mga_df$Significant == "Yes *"), background = "#FCE4D6", bold = TRUE) %>%
+  row_spec(which(mga_df$Significant == "No"),    background = "white") %>%
+  column_spec(1, bold = TRUE) %>%
+  column_spec(5, color = ifelse(mga_df$p_value < 0.05, "#c0392b", "black"),
+              bold  = ifelse(mga_df$p_value < 0.05, TRUE, FALSE))
+```
+
+
+## Permutation Test: MGA 2 (No Socio)
+
+```{r mga2-perm-table}
+mga_df2 %>%
+  mutate(Predictor = str_replace_all(Predictor, "_", " ")) %>%
+  rename("β With Comp."     = Beta_comp,
+         "β Without Comp."  = Beta_nocomp,
+         "Δβ"               = Delta,
+         "p-value"          = p_value,
+         "Sig."             = Significant) %>%
+  kable(align = "lrrrrr", booktabs = TRUE) %>%
+  kable_styling(font_size = 11, full_width = TRUE,
+                bootstrap_options = c("bordered","condensed")) %>%
+  row_spec(0, bold = TRUE, background = "#C6EFCE", color = "black") %>%
+  row_spec(which(mga_df2$Significant == "Yes *"), background = "#FCE4D6", bold = TRUE) %>%
+  row_spec(which(mga_df2$Significant == "No"),    background = "white") %>%
+  column_spec(1, bold = TRUE) %>%
+  column_spec(5, color = ifelse(mga_df2$p_value < 0.05, "#c0392b", "black"),
+              bold  = ifelse(mga_df2$p_value < 0.05, TRUE, FALSE))
+```
+
+
+## R² per Group
+
+```{r r2-mga-table}
+data.frame(
+  Model = c("MGA 1 — Full Model", "MGA 1 — Full Model",
+            "MGA 2 — No Socio",   "MGA 2 — No Socio"),
+  Group = c("With Compensation (n=277)","Without Compensation (n=348)",
+            "With Compensation (n=277)","Without Compensation (n=348)"),
+  R2    = round(c(
+    pls_comp$rSquared["Rsq",    "Tolerance"],
+    pls_nocomp$rSquared["Rsq",  "Tolerance"],
+    pls_comp2$rSquared["Rsq",   "Tolerance"],
+    pls_nocomp2$rSquared["Rsq", "Tolerance"]
+  ), 3),
+  AdjR2 = round(c(
+    pls_comp$rSquared["AdjRsq",    "Tolerance"],
+    pls_nocomp$rSquared["AdjRsq",  "Tolerance"],
+    pls_comp2$rSquared["AdjRsq",   "Tolerance"],
+    pls_nocomp2$rSquared["AdjRsq", "Tolerance"]
+  ), 3)
+) %>%
+  rename("Model Version" = Model, "Group" = Group, "R²" = R2, "Adj. R²" = AdjR2) %>%
+  kable(align = "llrr", booktabs = TRUE) %>%
+  kable_styling(font_size = 12, full_width = FALSE,
+                bootstrap_options = c("bordered","condensed")) %>%
+  row_spec(0, bold = TRUE, background = "#C6EFCE", color = "black") %>%
+  row_spec(c(1,3), background = "#dce9f7") %>%
+  row_spec(c(2,4), background = "#fde8e8") %>%
+  column_spec(2, bold = TRUE)
+```
+
+
+## Section 3.4 Key Takeaways
+
+**Result: Structural relationships are largely invariant across groups**
+
+- **MGA 1 (Full):** Only HouseholdAsset shows a significant group difference (p = 0.003) — all core paths are invariant
+- **MGA 2 (No Socio):** Confirms the same finding without demographic controls — group invariance holds in the parsimonious specification too
+- Intangible Costs → Tolerance is **significant in both groups** across both MGA versions
+- Results are consistent regardless of whether socio-demographic controls are included
+
+> **Interpretation:** A permutation-based MGA (*n* = 1,000 permutations) was conducted in two specifications. Both confirm structural invariance across the compensation and non-compensation groups (all core paths p > .05). The finding that intangible costs are the dominant predictor of tolerance is robust across groups and model specifications.
