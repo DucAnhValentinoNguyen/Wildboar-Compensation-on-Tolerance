@@ -16,3 +16,4 @@ Rscript run_project.R --verify    # reproducibility/acceptance checks
 
 The presentation release is [results/fresh/presentation/Wildboar_Consulting_Presentation.pptx](results/fresh/presentation/Wildboar_Consulting_Presentation.pptx), with [speaker notes](results/fresh/presentation/Speaker_Notes.md). The main report is [results/fresh/report/Analysis_Report.pdf](results/fresh/report/Analysis_Report.pdf) and the interactive version is [results/fresh/report/Analysis_Report.html](results/fresh/report/Analysis_Report.html). See [docs/CLARIFICATIONS_FOR_MENGXI.md](docs/CLARIFICATIONS_FOR_MENGXI.md) for unresolved fieldwork questions.
 
+The browsable, line-by-line analysis artifact is [results/fresh/artifact.html](results/fresh/artifact.html).
