@@ -1,6 +1,13 @@
 # Wildboar-Compensation-on-Tolerance
 Understanding the compensation policy impact on local resident’s tolerance towards wild boars in Giant Panda National Park, China 
 
+## Live artifact page
+
+The generated browser report is available at:
+
+`http://141.84.161.41:8000/reports/wildboar-compensation-analysis-2026-09-17.html`
+
+To serve it locally or restart the server after a reboot, run `./serve_artifact.sh` from the repository root. The server uses port 8000 by default (override with `PORT=...`).
 ## Fresh analysis release
 
 The rebuilt R-first pipeline is documented in [docs/PLAN.md](docs/PLAN.md) and [docs/ANALYSIS_DECISIONS.md](docs/ANALYSIS_DECISIONS.md). It preserves the original workbook, creates the audited derived dataset under `data/derived/`, and writes all tables, figures, model objects, reports, slides, and logs under `results/fresh/`.

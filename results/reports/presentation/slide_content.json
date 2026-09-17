@@ -1,0 +1,314 @@
+[
+  {
+    "title": "Compensation application and tolerance",
+    "bullets": ["Wild-boar conflict in Giant Panda National Park, China", "Fresh analysis for Mengxi Kou", "Measurement, associations, mechanisms, and robustness"],
+    "notes": "Opening: our task is to learn what this fieldwork supports, including results that challenge the original narrative. We distinguish compensation application from payment receipt throughout. Outline the 45-minute talk and reserve 15 minutes for methodological discussion.",
+    "figure": {},
+    "minutes": 0.9375,
+    "backup": false
+  },
+  {
+    "title": "The substantive question",
+    "bullets": ["Can financial compensation support coexistence?", "Do applicants report different tolerance?", "Which lived experiences and institutional contacts accompany that difference?"],
+    "notes": "The policy motivation is important, but this household survey measures simultaneous reports. We can describe and adjust associations; the causal effect of a compensation programme requires additional identification. Introduce the Wildlife Tolerance Model as a conceptual starting point, not a predetermined statistical solution.",
+    "figure": {},
+    "minutes": 1.4062,
+    "backup": false
+  },
+  {
+    "title": "Study design and retained sample",
+    "bullets": ["625 households: Baoxing 160; Qingchuan 465", "Different interview periods: August 2024 vs March–April 2025", "25 townships; 177 complete village keys; 49 earlier exclusions unexplained"],
+    "notes": "County and survey timing are inseparable here. There are no repeated measurements on the same households. Unknown sampling and exclusion mechanisms limit population generalization. A missing village receives its own grouping key, not an invented location.",
+    "figure": {},
+    "minutes": 1.4062,
+    "backup": false
+  },
+  {
+    "title": "Application is not verified payment",
+    "bullets": ["CE0 asks whether the respondent applied", "277 applicants; 348 non-applicants", "Receipt, timing, and eligibility are not independently established"],
+    "notes": "The original wording matters: never label CE0 as random policy exposure or guaranteed compensation receipt. Selection into applying can reflect losses, reporting access, and attitudes. Applicants are not automatically comparable to non-applicants.",
+    "figure": {},
+    "minutes": 1.4062,
+    "backup": false
+  },
+  {
+    "title": "Application differs by county",
+    "bullets": "County adjustment is essential context, not causal identification.",
+    "notes": "Explain the 74% versus 34% application rates. Geographic composition can change pooled comparisons. This motivates county fixed effects and township clustering, not standard errors clustered on only two counties.",
+    "figure": "application_by_county",
+    "minutes": 1.4062,
+    "backup": false
+  },
+  {
+    "title": "Four questions, four dimensions",
+    "bullets": "Non-lethal management; population control; safety; accepting damage",
+    "notes": "Read the substantive meaning of each item. Tol2 and Tol3 are already reversed, confirmed by Mengxi and raw responses. Higher Tol3 means less safety concern. A common positive orientation does not establish one underlying factor.",
+    "figure": "tolerance_distributions",
+    "minutes": 1.875,
+    "backup": false
+  },
+  {
+    "title": "A traceable data rebuild",
+    "bullets": ["Preserve the workbook; record every derived change", "Restore raw nonresponse and missing-word zeros", "Rebuild institutional counts; flag unresolved percentages and units"],
+    "notes": "Clarify that data cleaning is evidence-based rather than selected for favorable results. Percentages over 100% remain unresolved and receive sensitivity analysis. Non-applicants have structurally undefined payment satisfaction. Prevention non-use is not poor effectiveness.",
+    "figure": {},
+    "minutes": 1.875,
+    "backup": false
+  },
+  {
+    "title": "EDA establishes the comparison",
+    "bullets": ["Profiles, missingness, skewness, ceiling effects, and imbalance", "Raw questionnaire fields retain additional substantive information"],
+    "notes": "The full EDA tables are available, including every derived variable and the raw-field inventory. Do not read every imbalance as a hypothesis test. Emphasize sparse ordinal categories, skewed losses, and different household compositions.",
+    "figure": "balance",
+    "minutes": 0.9375,
+    "backup": false
+  },
+  {
+    "title": "An analysis map, not a model contest",
+    "bullets": ["Measurement: EFA → theory CFA; PCA as description", "Associations: ordinal, score, Bayesian, and nonlinear models", "Mechanisms: PLS paths, interaction, MGA", "Stress tests and prediction answer separate questions"],
+    "notes": "Explain why methods are complementary. The best predictive model does not identify a policy effect. CFA fit does not prove a mechanism. A PLS composite does not automatically represent an error-free latent variable.",
+    "figure": {},
+    "minutes": 1.875,
+    "backup": false
+  },
+  {
+    "title": "What is reflective, formative, or observed?",
+    "bullets": ["Tolerance: reflective hypothesis under examination", "Institutions and tangible costs: formative components", "CE0 and ecological value: observed single items", "Item meanings constrain admissible models"],
+    "notes": "Avoid using low alpha as a reason to relabel a construct formative. Institutional contact counts and information channels are behaviors, not interchangeable symptoms of fatigue. Reflective diagnostics such as HTMT must be interpreted within this distinction.",
+    "figure": {},
+    "minutes": 1.875,
+    "backup": false
+  },
+  {
+    "title": "EFA: the expected structure is not assured",
+    "bullets": ["Ordinal polychorics, minres extraction, oblimin rotation", "Parallel analysis and identification must be read together"],
+    "notes": "The development split has 316 respondents and only 238 complete eight-item records. Pairwise polychorics use available pairs. The parallel suggestion of four factors among eight items is not an identified four-factor questionnaire model. The two-factor EFA has a Heywood problem; report it openly.",
+    "figure": "parallel_analysis",
+    "minutes": 1.875,
+    "backup": false
+  },
+  {
+    "title": "CFA: internal validation, not independent replication",
+    "bullets": ["Three-item tolerance two-factor validation: CFI 0.967, RMSEA 0.048", "Village-disjoint development and validation partitions", "Weak word-item loadings and factor overlap remain"],
+    "notes": "Use the holdout to assess fixed theory models rather than optimize modification indices. The dataset was previously seen, so do not call this independent confirmation. Explain that a standalone three-item factor is just-identified and its perfect fit would not validate it. Factor orientation is arbitrary; compare absolute latent correlations.",
+    "figure": {},
+    "minutes": 1.875,
+    "backup": false
+  },
+  {
+    "title": "PCA describes variance; it does not validate constructs",
+    "bullets": ["Standardized complete-case item PCA", "Loadings and explained variance supplied", "PCA components are not latent causes, IRT, or PLS-SEM"],
+    "notes": "PCA answers a variance-reduction question. It is useful for checking whether scoring changes the picture, but choosing a component to maximize the application coefficient would be selective analysis. Keep it separate from the substantive construct argument.",
+    "figure": "pca_variance",
+    "minutes": 0.9375,
+    "backup": false
+  },
+  {
+    "title": "The HTMT question",
+    "bullets": ["Historical 1.112 must be reassessed after coding corrections", "Corrected reflective cost/tolerance diagnostics still show overlap", "HTMT is not a pass/fail rule for formative institutional contact"],
+    "notes": "This directly answers Mengxi's question. Revisit the indicators before merging constructs. The rebuilt reflective cost/tolerance HTMT is high, consistent with overlapping attitudinal content and weak word-item coherence. Institutional contact should not be renamed governance fatigue based on a correlation.",
+    "figure": {},
+    "minutes": 1.875,
+    "backup": false
+  },
+  {
+    "title": "Primary estimands and uncertainty",
+    "bullets": ["Four ordinal outcomes; Holm adjustment within each model family", "Unadjusted → background → resources → explanatory", "County effects; township-clustered uncertainty", "Report probabilities and intervals, not just p-values"],
+    "notes": "The adjustment sequence changes the interpretation. The explanatory model conditions on simultaneous attitudes and potential mediators. It does not estimate the total policy effect. Explain finite-cluster t inference with 25 townships and why village clustering is a sensitivity.",
+    "figure": {},
+    "minutes": 1.875,
+    "backup": false
+  },
+  {
+    "title": "Item-level results differ",
+    "bullets": "The strongest background-adjusted signal concerns non-lethal management.",
+    "notes": "Point out the negative application association for Tol1, uncertainty for other items after Holm adjustment, and little adjusted association for safety. The stronger resource-adjusted Tol2/Tol4 estimates appear in backup tables. Do not summarize all outcomes as the same psychological response.",
+    "figure": "primary_ordinal",
+    "minutes": 1.875,
+    "backup": false
+  },
+  {
+    "title": "Composite results depend on the definition",
+    "bullets": "Three- and four-item scores are secondary summaries.",
+    "notes": "Read the outcome-SD scale carefully. Equal raw-item means differ from the earlier mean-z-score construction. A change in coefficient size can reflect the outcome definition and adjustment, not an algorithm discovering a new causal effect.",
+    "figure": "score_associations",
+    "minutes": 1.875,
+    "backup": false
+  },
+  {
+    "title": "Ordinal assumptions and Bayesian checks",
+    "bullets": ["4/4 Bayesian models passed the prespecified MCMC checks", "Township random intercepts; weakly informative priors", "Nonparallel slopes and sparse-category fits remain concerns"],
+    "notes": "Four chains, R-hat at most 1.01, ESS at least 400, and no divergences are computational checks. Posterior predictive plots are provided. Some proportional-odds diagnostics indicate deviations; a Tol2 partial model has a singular Hessian. Do not claim that Bayesian estimation solves these substantive assumptions.",
+    "figure": {},
+    "minutes": 1.4062,
+    "backup": false
+  },
+  {
+    "title": "PLS-SEM: compare specified models",
+    "bullets": ["Baseline; mediation; conflict/prevention extension", "Three vs four tolerance items; IC1-only sensitivity", "Standard PLS-PM; full measurement refit in the bootstrap"],
+    "notes": "The main model uses formative cost and institution blocks, observed application/benefit, and a reflective tolerance specification. We report weights, loadings, VIF, reliability where applicable, R², f² and SRMR. Fit and explained variance do not establish causality or construct validity.",
+    "figure": {},
+    "minutes": 1.875,
+    "backup": false
+  },
+  {
+    "title": "Direct and indirect associations",
+    "bullets": "Intervals come from 5,000 county-stratified township resamples.",
+    "notes": "The direct negative path persists, but both proposed indirect intervals cross zero. The institutional and cost indirect paths have opposite signs and almost cancel. Distinguish standardized PLS paths from the two-stage raw 0/1 application interaction. One bootstrap fit was inadmissible and was recorded, not replaced.",
+    "figure": "pls_paths",
+    "minutes": 1.875,
+    "backup": false
+  },
+  {
+    "title": "The proposed mechanisms remain uncertain",
+    "bullets": ["Direct path: -0.142 [-0.193, -0.092]", "Indirect via costs: -0.025 [-0.065, 0.020]", "Indirect via institutions: 0.024 [-0.002, 0.049]", "These data do not demonstrate governance fatigue."],
+    "notes": "This is an important departure from earlier reports. Even a nonzero indirect product would need temporal and confounding assumptions to support causal mediation. Here uncertainty already prevents a strong statistical mediation claim.",
+    "figure": {},
+    "minutes": 1.4062,
+    "backup": false
+  },
+  {
+    "title": "Small interaction; uncertain group differences",
+    "bullets": ["Interaction: 0.100 [-0.074, 0.264]", "Interaction f² = 0.003", "All four cluster-bootstrap MGA intervals include zero", "No strong difference is not proof of equivalence"],
+    "notes": "Keep the prespecified interaction in the exploratory results. Do not delete it to make the model appear stronger. MICOM is a conventional supporting diagnostic; means/variances are not fully invariant. Group-standardized paths are not identical to common-scale observed interactions.",
+    "figure": {},
+    "minutes": 1.4062,
+    "backup": false
+  },
+  {
+    "title": "Secondary findings use more of the fieldwork",
+    "bullets": ["Agricultural dependence and prevention deserve attention", "Applicant timeliness/satisfaction estimates are uncertain", "Insurance preferences, channels, crops, and seasons are profiled", "Secondary family uses BH multiplicity adjustment"],
+    "notes": "The aim is useful substantive coverage, not accumulating significant results. Adoption and conditional effectiveness answer different questions. Payment text and prevention expenditure are incomplete; payout/loss ratios and causal cost-effectiveness rankings are withheld. Original word counts await human thematic review.",
+    "figure": {},
+    "minutes": 1.4062,
+    "backup": false
+  },
+  {
+    "title": "How much can we predict?",
+    "bullets": "Best observed grouped-CV RMSE: 0.537 (elastic_net)",
+    "notes": "Five outer and three inner township folds prevent community leakage. Scaling and imputation are trained within folds. Differences among the leading models are small and do not prove linearity. Held-out importance is predictive reliance, not causal importance.",
+    "figure": "prediction",
+    "minutes": 1.4062,
+    "backup": false
+  },
+  {
+    "title": "Cross-fitting checks adjusted associations",
+    "bullets": ["Five AIPW contrasts: -0.216 to -0.193 raw score points", "Nuisance models predict unseen townships", "Overlap and balance are checked; causal assumptions remain"],
+    "notes": "Explain the orthogonal-style score without presenting DML as an automatic confounding cure. Only background/resources enter nuisance models. Repeated splits check algorithmic sensitivity, not five independent replications. Report propensity ranges and effective sample size.",
+    "figure": {},
+    "minutes": 1.4062,
+    "backup": false
+  },
+  {
+    "title": "A transparent specification curve",
+    "bullets": "360 distinct model/uncertainty combinations; outcomes shown separately",
+    "notes": "We vary reasonable decisions and deduplicate identical inputs. This is not a search for significance. A percentage of negative estimates is not a probability of robustness. Invalid reverse coding is not a reasonable alternative. The safety item should not be hidden among composite results.",
+    "figure": "specification_curve",
+    "minutes": 1.875,
+    "backup": false
+  },
+  {
+    "title": "Stress-test the observations and assumptions",
+    "bullets": ["Leave-one-township contrast range: -0.353 to -0.289", "Village clustering; county checks; extreme-loss sensitivity", "Unresolved-value handling and confounding-strength grid", "All failures and model choices remain visible"],
+    "notes": "Influence tests assess whether a small number of observations or communities dominate the result. They do not address all unmeasured confounding. The bias grid is a linear point-estimate sensitivity, not a cluster-adjusted causal confidence interval.",
+    "figure": {},
+    "minutes": 0.9375,
+    "backup": false
+  },
+  {
+    "title": "What can we defend?",
+    "bullets": ["Applicants report lower tolerance on several management dimensions", "Measurement and outcome choice materially affect the story", "The proposed mediation and moderation are not established", "Policy failure is not identified by this survey"],
+    "notes": "Offer the most defensible interpretation in plain language. Compensation application may mark respondents with different experiences, expectations, and institutional contact. Multiple explanations remain compatible with the data. A causal policy evaluation needs timing and a credible design.",
+    "figure": {},
+    "minutes": 1.4062,
+    "backup": false
+  },
+  {
+    "title": "What remains for the final report?",
+    "bullets": ["Clarify sampling, exclusions, payment timing, percentages, and units", "Resolve methodological questions from today's discussion", "Amend the decision register and rerun affected analyses", "Preserve the presentation release for comparison"],
+    "notes": "All available-data analyses are reproducible today. Future work is substantive clarification and response to feedback, not inventing causal identification. Clearly separate information unavailable in the workbook from computational tasks already completed.",
+    "figure": {},
+    "minutes": 0.9375,
+    "backup": false
+  },
+  {
+    "title": "Discussion",
+    "bullets": ["Which tolerance dimensions matter for the policy question?", "What evidence would distinguish selection from policy effects?", "Which measurement interpretation is defensible?"],
+    "notes": "Invite methodological criticism. Have the following backup slides and the full report ready. Allocate 15 minutes to discussion and record questions for the three-week final-report revision.",
+    "figure": {},
+    "minutes": 0.4688,
+    "backup": false
+  },
+  {
+    "title": "Backup: direct answers to Mengxi",
+    "bullets": ["Measurement: no clean, automatic latent structure", "HTMT: diagnose reflective blocks; do not merge formative behaviors blindly", "Moderation: small and uncertain; MGA: no strong difference", "Interpretation: association, not demonstrated causal mediation"],
+    "notes": "Use this as the checklist that every item of the Exploratory Contribution was addressed. The full report contains the explicit question-to-answer mapping.",
+    "figure": {},
+    "minutes": 1.5,
+    "backup": true
+  },
+  {
+    "title": "Backup: selection and causal direction",
+    "bullets": ["Application is voluntary and measured cross-sectionally", "County, losses, attitudes, and institutions can shape selection", "Cross-fitting removes training reuse, not unmeasured confounding", "No valid instrument or longitudinal policy comparison is established"],
+    "notes": "If asked for an ATE, explain the identification assumptions and why our adjusted contrasts do not establish them. Conditioning on current attitudes can block or distort paths; a statistical arrow is not temporal evidence.",
+    "figure": {},
+    "minutes": 1.5,
+    "backup": true
+  },
+  {
+    "title": "Backup: why not interpret nonsignificance as equality?",
+    "bullets": ["Group differences can be imprecise", "Equivalence needs a justified margin and adequate precision", "Group-standardized coefficients depend on variance", "MICOM non-rejection is not proof of full invariance"],
+    "notes": "A nonsignificant MGA is supplementary evidence of no clear difference, exactly as Mengxi suggested. The study did not specify a substantive equivalence margin, so it cannot claim equivalent mechanisms.",
+    "figure": {},
+    "minutes": 1.5,
+    "backup": true
+  },
+  {
+    "title": "Backup: posterior predictive check",
+    "bullets": "MCMC diagnostics and model fit answer different questions.",
+    "notes": "Compare observed response frequencies with replicated frequencies. The remaining three item plots and all diagnostics are available in the report outputs.",
+    "figure": "bayes_ppc_tol1",
+    "minutes": 1.5,
+    "backup": true
+  },
+  {
+    "title": "Backup: propensity overlap",
+    "bullets": "Inspect support, balance, clipping, and effective sample size.",
+    "notes": "Overlap in the fitted propensity distribution does not prove overlap on unobserved confounders. The exported balance table shows how observed differences change after weighting.",
+    "figure": "overlap",
+    "minutes": 1.5,
+    "backup": true
+  },
+  {
+    "title": "Backup: p-hacking safeguards",
+    "bullets": ["Dated plan; prior inspection disclosed", "Full results and failures; no significance-driven deletion", "Deduplicated specifications; multiplicity; internal validation", "No p-curve or certificate of 'no p-hacking'"],
+    "notes": "Explain that the appropriate safeguard is transparent analytical practice. P-curve on correlated tests from this single sample would not establish the absence of selective reporting.",
+    "figure": {},
+    "minutes": 1.5,
+    "backup": true
+  },
+  {
+    "title": "Backup: missingness and anomalies",
+    "bullets": ["Structural payment missingness is never imputed", "Word zeros are absent answers, not positive sentiment", "Percentages above 100% are flagged, not guessed", "Median/mode sensitivity is limited, not full multiple imputation"],
+    "notes": "The transformation log identifies exactly which values changed and why. One missing raw Tol1 changes the score sample from 625 to 624. Main PLS complete cases number 622 because reporting responses are also missing.",
+    "figure": {},
+    "minutes": 1.5,
+    "backup": true
+  },
+  {
+    "title": "Backup: reproducibility",
+    "bullets": ["R targets pipeline and renv lockfile", "Source/data hashes, seeds, grouped folds, model objects", "Reports and slides read the same saved tables", "One build command; separate render and validation commands"],
+    "notes": "Commands: Rscript run_project.R --restore; Rscript run_project.R; Rscript run_project.R --render; Rscript run_project.R --verify. A rebuild should not rely on an RStudio workspace or .RData.",
+    "figure": {},
+    "minutes": 1.5,
+    "backup": true
+  },
+  {
+    "title": "Backup: methodological references",
+    "bullets": ["lavaan: categorical WLSMV; psych: EFA and parallel analysis", "cSEM: PLS-PM and MICOM; brms: ordinal multilevel models", "Simonsohn et al. (2020): specification curve analysis", "DoubleML: cross-fitting and sensitivity assumptions"],
+    "notes": "Clickable references and full URLs are in the report and PLAN.md. These guide method choices; they do not validate the present dataset automatically.",
+    "figure": {},
+    "minutes": 1.5,
+    "backup": true
+  }
+]
