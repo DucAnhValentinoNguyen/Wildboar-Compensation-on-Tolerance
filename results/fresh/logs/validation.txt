@@ -1,0 +1,23 @@
+VALIDATION PASSED
+List of 4
+ $ checked_utc  : chr "2026-09-17 21:04:31 UTC"
+ $ n_respondents: int 625
+ $ n_tables     : int 83
+ $ file_hashes  :List of 17
+  ..$ src/fresh/bayesian.R      : chr "6eecb1ff69e5ffa6013d517b3dbfb072bcebfdb420fa6fddd2f774d0ea57f2d0"
+  ..$ src/fresh/common.R        : chr "2599b88aa8ceb752119f7d62f880f1eda01becc770262dc23b3d7c9ab097c79d"
+  ..$ src/fresh/eda.R           : chr "f23c66684994a9e1aee7a96384c5bade5b53a556d18642b4a3e9a0d755e62321"
+  ..$ src/fresh/measurement.R   : chr "df85a6cfc973bc15278b0647dedca60826b041bea40ea76b9d8e74687b8f34af"
+  ..$ src/fresh/prediction.R    : chr "8617e5f16bef88f6d3b88dd40961ea70e33bc905b54ea2a1919d0d38e9ebd1b9"
+  ..$ src/fresh/prepare.R       : chr "902487284d35c87900d82195e66378c587726361f5e24cb5f3833b0c42b9eb5a"
+  ..$ src/fresh/regression.R    : chr "579387673d22ca8cafbd7e30a8f96acd7c5bdb526a1f83e42efa192c50f1300a"
+  ..$ src/fresh/reporting.R     : chr "454023cf06b613cc7fe5350f03da0e73862fe472d21fe33c2a455f8e33dd7798"
+  ..$ src/fresh/robustness.R    : chr "4a487ca22adf9d341cbd31f378d0268edcd9d14769925da1c206be9920e4138c"
+  ..$ src/fresh/secondary.R     : chr "d33d6f9269a84575eb195ecbb08cd99bb46bc12d9616d05c68af719fae8e2c9b"
+  ..$ src/fresh/structural.R    : chr "92b822c3d87a4bd38a629f7352ba564319e588214677f176f66350376b4c3c42"
+  ..$ src/fresh/validate.R      : chr "8cd8207f86bd898cfcc830729c98ac1f43120446b348fea5fd1a0ba4464b82f7"
+  ..$ _targets.R                : chr "4a9b1b07b73f057fbb42aa8206a55c997cbcea07a4dcb2f4b76d897b4928eec7"
+  ..$ run_project.R             : chr "aa56c117402dd59e07cf6063f9263c32d8f6df311a9c53387a9e8cc155f23c95"
+  ..$ docs/PLAN.md              : chr "1579cf70ab0d0651f323ac744622ebd538c03d90583e0c5552a0f8b0d305b1b7"
+  ..$ docs/ANALYSIS_DECISIONS.md: chr "cb1c03718db72da3fafd19b976d0630017b4622533e407078cb35fa6bf8ad7fb"
+  ..$ docs/Analysis_Report.Rmd  : chr "e8db6d7866919ff12e1d7abdcbb47b6dbccb15033b9245468817e4a3de4dc238"

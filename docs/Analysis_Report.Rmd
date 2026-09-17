@@ -1,0 +1,334 @@
+---
+title: "Compensation application and tolerance toward wild boars"
+subtitle: "Fresh statistical analysis — presentation release"
+author: "Statistical consulting for Mengxi Kou"
+date: "2026-09-17"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    self_contained: true
+    theme: flatly
+  pdf_document:
+    toc: true
+    latex_engine: xelatex
+    keep_tex: false
+geometry: margin=0.8in
+fontsize: 10pt
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE,warning=FALSE,message=FALSE,fig.align="center",out.width="95%")
+root<-Sys.getenv("WILDBOAR_ROOT")
+out<-file.path(root,"results/fresh")
+tab<-function(n)read.csv(file.path(out,"tables",paste0(n,".csv")),check.names=FALSE)
+showtab<-function(n,cols=NULL,filter=NULL,digits=3){x<-tab(n);if(!is.null(filter))x<-x[filter(x),,drop=FALSE];if(!is.null(cols))x<-x[,cols,drop=FALSE];knitr::kable(x,digits=digits,row.names=FALSE)}
+fig<-function(n)knitr::include_graphics(normalizePath(file.path(out,"figures",paste0(n,".png")),mustWork=TRUE))
+f<-function(x)formatC(x,digits=3,format="f")
+ci<-tab("pls_bootstrap_summary");ci<-ci[ci$requested==5000,]
+direct<-ci[ci$parameter=="direct",];ind<-ci[ci$parameter=="indirect_IC",];inter<-ci[ci$parameter=="interaction",]
+ord<-tab("ordinal_associations");metrics<-tab("sample_metrics")
+```
+
+# Executive assessment
+
+This cross-sectional study contains 625 retained households from Baoxing and Qingchuan. Application for wildlife-damage compensation is associated with lower tolerance on several management-related measures, but **the four questionnaire outcomes do not behave as one interchangeable scale**. The safety question has little adjusted association with application.
+
+The rebuilt PLS model estimates a direct standardized application path of `r f(direct$estimate)` (95% county-stratified township-bootstrap interval [`r f(direct$low)`, `r f(direct$high)`]). The proposed indirect association through intangible costs is `r f(ind$estimate)` [`r f(ind$low)`, `r f(ind$high)`]. Its interval includes zero. Neither this result nor the institutional pathway establishes mediation. The interaction is small and uncertain.
+
+This supports a carefully qualified **negative association**, not proof that compensation reduces tolerance or that administrative fatigue explains it. PLS paths, ordinal log odds, raw-score contrasts, and outcome-SD contrasts are different quantities and must not be compared as if on the same scale.
+
+The analysis also identifies useful secondary associations involving prevention and agricultural dependence. These are exploratory. Every tested specification, diagnostic, failed fit, and available result table is retained in the analysis outputs.
+
+# 1. Background, design, and hypotheses
+
+The study asks whether compensation application is associated with tolerance, whether intangible costs and institutional contact may link those variables, and whether the relationships withstand reasonable measurement and analytical choices. Mengxi's wider dissertation concerns cultural perceptions, policy history, and governance of human–wild-boar conflict in China.
+
+The Wildlife Tolerance Model motivates distinguishing conflict exposure, tangible losses, intangible costs, perceived ecological benefits, and tolerance. Compensation is a policy experience; institutional contact is an observed behavior; costs and attitudes describe lived experiences. Their conceptual roles should not be determined by whichever path is significant.
+
+The retained sample has 160 Baoxing interviews from August 2024 and 465 Qingchuan interviews from March–April 2025. County is therefore confounded with survey period. This is not a before/after study. There is no untreated-policy control group: CE0 distinguishes respondents who report applying from those who do not, not randomly assigned policy exposure.
+
+The primary hypotheses concern application associations with the four tolerance items. Direction is not required for an analysis to be successful. Indirect paths, the application-by-cost interaction, group differences, and secondary outcomes are explicitly exploratory. The decisions were frozen before this rebuild, but the dataset had previously been inspected; this is **not preregistration of unseen data**.
+
+# 2. Data preparation and EDA
+
+The input workbook is preserved. All 625 IDs match between its Input Data and Raw data sheets. The raw sheet itself contains retained interviews and earlier derived fields, not an untouched export. The exclusion reasons for 49 of the original 674 interviews remain unavailable.
+
+Tol2 and Tol3 are already reversed; Mengxi confirmed this, and the raw Chinese responses agree. They are not reversed again. The primary rebuild restores one missing raw Tol1 answer, missing applicant timeliness/satisfaction answers, and missing word responses. Payment-experience items remain undefined for non-applicants. Original and derived values are linked in `data/derived/transformation_log.csv`.
+
+Reporting institutions are reconstructed as an increasing count. Percentage answers above 100% are unresolved, not silently divided by ten. The primary preference analyses exclude those values; sensitivities retain them. Recorded area is provisionally labeled mu, without hectare conversion. Prevention non-use is distinct from poor effectiveness among users.
+
+```{r sample}
+showtab("sample_metrics")
+```
+
+There are 177 complete village keys plus one respondent-specific key for the missing village, nested in 25 county–township keys. No representativeness claim or design weights can be justified without the sampling protocol.
+
+```{r countyfig}
+fig("application_by_county")
+```
+
+Application rates differ strongly by county (119/160 versus 158/465). The county-adjusted results consequently answer a different comparison from the pooled unadjusted difference. Economic variables are strongly skewed; log1p transformations retain zeros and reduce leverage. Damage greater than owned land is flagged, not automatically deleted, because reference periods could differ.
+
+```{r distributions}
+fig("tolerance_distributions")
+```
+
+The four items concern non-lethal management, opposition to stricter population control, absence of safety threat, and acceptance of damage. They are substantively different. Strong floor/ceiling effects and very sparse extreme categories matter for ordinal estimation and factor analysis.
+
+```{r balancefig}
+fig("balance")
+```
+
+The EDA exports a numeric profile, category frequencies, county/application/park profiles, correlations, raw-field inventory, crop portfolio, species/seasonality/encounter frequencies, and original Chinese-word frequencies. These full machine-readable tables accompany this report rather than being reduced to selected significant comparisons.
+
+# 3. Measurement structure: EFA, CFA, PCA
+
+## Development and validation
+
+A fixed village-disjoint split balances county/application cell counts as closely as possible. Measurement exploration uses the development partition; theory models are evaluated in the validation partition unchanged. Full-sample estimates are then reported for precision. Prior inspection of this dataset means this remains internal validation, not independent confirmation.
+
+```{r split}
+showtab("split_balance")
+```
+
+## EFA
+
+EFA examines the four tolerance items and IC1 plus three word-sentiment items. It uses polychoric correlations, minimum-residual extraction, and oblimin rotation. Missing word responses are not replaced with artificial sentiments. Correlations use available pairs; this relies on a missingness assumption and does not solve selective word nonresponse. There are fewer complete respondents than the pairwise analysis count.
+
+Sparse categories caused the initial continuity-corrected polychoric estimator to fail. The executed analysis uses uncorrected pairwise polychorics (`correct=0`, `global=FALSE`), with that numerical change logged. The parallel-analysis suggestion is examined against identification and loading structure, not accepted mechanically.
+
+```{r efa}
+showtab("efa_comparison")
+fig("parallel_analysis")
+```
+
+Parallel analysis suggests four factors among only eight items. A four-factor structure with at least three indicators per factor is not supported by this item pool, so no such CFA is manufactured. The two-factor EFA has an ultra-Heywood solution; the three-factor solution's better fit does not by itself establish interpretable constructs. This is substantive evidence against treating a neat factor solution as guaranteed.
+
+```{r efaloadings}
+showtab("efa_loadings_1")
+showtab("efa_loadings_3")
+```
+
+## CFA and discriminant validity
+
+Ordinal CFA uses WLSMV and available-pair information. The two-factor models separate tolerance from the proposed reflective intangible-cost block; one alternative excludes the safety item. A one-factor model tests empirical overlap. These are tests of measurement hypotheses, not permission to redefine formative constructs after seeing fit.
+
+```{r cfa}
+showtab("cfa_fit",c("partition","model","n","converged","admissible","cfi.scaled","tli.scaled","rmsea.scaled","srmr"))
+```
+
+The three-item tolerance version improves validation fit, but the combined model's fit is not a standalone validation of a three-item scale. Factor loadings and factor correlations matter. The full-sample cost/tolerance factor correlation has large absolute magnitude; weak word-item loadings and overlapping attitudinal content make a clean separation doubtful. Factor signs are arbitrary; use loading orientation when interpreting the correlation.
+
+```{r cfaparam}
+p<-tab("cfa_parameters")
+knitr::kable(subset(p,partition=="full" & model=="two_factor_three" & op=="=~",select=c(lhs,rhs,std.all)),digits=3)
+knitr::kable(subset(p,partition=="full" & op=="~~" & lhs!=rhs,select=c(model,lhs,rhs,std.all,ci.lower,ci.upper)),digits=3)
+showtab("htmt_scope")
+```
+
+The attachment's historical HTMT 1.112 is not reused as a current estimate. The corrected reflective tolerance-versus-cost diagnostics still indicate overlap. Institutional contact, however, is specified as a formative composite of behaviors; HTMT is not an appropriate blanket pass/fail criterion for that block. Neither merging institutional contact with sentiment nor calling it “governance fatigue” is justified by these questions alone.
+
+## PCA
+
+PCA uses standardized observed items among complete cases. It describes variance, not latent causes; it is not PLS-SEM or an item-response model. PCA loadings and variance are supplied as an alternative description, not selected to maximize the compensation coefficient.
+
+```{r pca}
+showtab("pca_variance")
+```
+
+**Measurement conclusion:** retain the four observed outcomes as the primary family. Use the three-item and four-item scores transparently as secondary summaries. Treat the proposed reflective cost factor as uncertain, and keep institutional behaviors interpretable at item level. No single latent score should carry the whole scientific claim.
+
+# 4. Primary models and uncertainty
+
+The primary ordinal models report application associations for all four items, with Holm correction within each adjustment family. Background controls are county, park residence, age, gender, education categories, and household size. Resource adjustment adds log income, agricultural share, log land, livestock, and assets. Explanatory models additionally condition on simultaneous conflict, cost, benefit, reporting, and prevention variables; these should not be described as total causal effects.
+
+Uncertainty clusters by township with a finite-cluster t reference. Village clustering is a sensitivity; only two counties are available, so county-clustered inference is not used.
+
+```{r ordinal}
+showtab("ordinal_associations",c("outcome","adjustment","n","estimate","low","high","p_holm"))
+fig("primary_ordinal")
+```
+
+The strongest background-adjusted signal is less support for non-lethal management among applicants. The safety item has a different pattern. Adding resources strengthens some other item associations; adjusting simultaneous attitudes answers another question and can attenuate them.
+
+Predicted category probabilities are in `ordinal_probabilities.csv`. These are more interpretable than odds ratios alone. The available partial proportional-odds diagnostics and models are reported as sensitivity analyses, not silently substituted to obtain favorable results.
+
+```{r proportional}
+showtab("proportional_odds_tests",c("outcome","term","LRT","Pr(>Chi)"),function(x)x$term=="application")
+```
+
+These likelihood-ratio diagnostics are conventional individual-level checks, not cluster-adjusted tests. Some items suggest nonparallel application slopes. A sparse-category partial model for Tol2 has a singular Hessian; its parameter table is retained for diagnosis but should not be interpreted as a reliable final estimate. The ordinal proportional-odds summaries therefore remain accompanied by category probabilities, partial-model diagnostics, and continuous-score sensitivity.
+
+```{r scores}
+showtab("score_associations",c("outcome","adjustment","estimate","low","high","p"),function(x)x$covariance=="township")
+fig("score_associations")
+```
+
+GAMs assess nonlinear age/income/land relationships in the resource-adjusted score models. Their smooth-term and parametric tables are saved separately; their usual model-based p-values are not substitutes for the primary clustered inference.
+
+## Bayesian ordinal multilevel complement
+
+Four cumulative-logit models use township random intercepts, background controls, standardized continuous predictors, Normal(0,1) coefficient priors, and exponential(1) random-intercept SD priors. Each uses four chains with 1,000 warmup and 1,000 retained iterations per chain. They make a random-effects assumption and are not a cure for unmeasured confounding or proportional-odds misspecification.
+
+```{r bayes}
+showtab("bayesian_associations")
+showtab("bayesian_diagnostics")
+fig("bayes_ppc_tol1")
+```
+
+Posterior predictive figures are available for all four outcomes. Paired posterior category contrasts use the same draws under application 0/1. Passing MCMC diagnostics establishes computational adequacy, not causal validity or perfect model fit.
+
+# 5. PLS-SEM, mechanisms, and moderation
+
+The main PLS model contains a three-item reflective tolerance specification; formative intangible-cost, institutional-contact, and tangible-cost blocks; and observed application and ecological value. Standard PLS-PM is used without disattenuation. Thus path estimates describe standardized composite-score relationships; they are not error-free latent causal parameters. Equal-scoring/item-level analyses remain essential checks.
+
+Five specifications are compared: baseline, mediation, extended conflict/prevention, four-item tolerance, and IC1-only. All use the same complete sample for this comparison. Formative weights, reflective loadings, VIF, AVE, reliability, f², R², and SRMR are exported. Interpret reflective reliability only for the reflective block; do not use it as a requirement for formative components.
+
+```{r plsquality}
+showtab("pls_quality")
+```
+
+Measurement and structural coefficients are re-estimated in every bootstrap. Whole townships are sampled within county, preserving the two-county design. Of 5,000 requested main-model replicates, `r direct$successful` are usable. Failures are retained in `pls_bootstrap_replicates.csv`. Both 2,000- and 5,000-replicate summaries are available for stability assessment.
+
+```{r plspaths}
+showtab("pls_bootstrap_summary",c("parameter","estimate","low","high","p_centered","successful"),function(x)x$requested==5000)
+fig("pls_paths")
+```
+
+The IC and institutional indirect paths both have intervals crossing zero. Their opposite signs nearly cancel in this specification. A significant direct application association does not establish why it occurs. Neither the measurement data nor temporal ordering establishes administrative fatigue.
+
+The two-stage interaction re-estimates PLS scores in each bootstrap, then fits the application-by-centered-cost term. Its coefficient is `r f(inter$estimate)` [`r f(inter$low)`, `r f(inter$high)`]; f² is approximately `r f(ci$estimate[ci$parameter=="interaction_f2"])`. It is an exploratory small, uncertain effect. The nonnegative f² percentile interval is not a significance test. The observed-score interaction provides a separate common-scale comparison.
+
+```{r interaction}
+showtab("observed_interaction")
+```
+
+# 6. Multi-group analysis
+
+Application defines the two groups; it is not included as a predictor within either group. Measurement blocks and algorithms are the same. MICOM's conventional individual-permutation diagnostic uses 999 permutations; it is not a cluster-randomization test, so its p-values are supporting diagnostics. Full output is in `logs/micom.txt`.
+
+The compositional-invariance tests do not reject, but some estimated score correlations are low and equality of means/variances does not generally hold. This is not proof of full invariance. Different group standard deviations can alter standardized path coefficients.
+
+Group path differences below use 2,000 township-cluster bootstrap samples. Every interval includes zero. Interpret this as **no strong evidence of these group differences**, not proof of equality or support for moderation.
+
+```{r mga}
+showtab("mga_cluster_differences",c("path","difference","low","high","successful"))
+```
+
+# 7. Prediction and cross-fitted adjustment
+
+## Prediction
+
+Five outer township-disjoint folds evaluate prediction; three inner township folds tune elastic net, forest, and boosting. All imputation/scaling is learned from training rows. The score target is the raw three-item mean, not a globally standardized latent target. Features include directly observed attitudes, not precomputed full-data standardized IC scores. A mean-only benchmark establishes the baseline.
+
+```{r prediction}
+showtab("prediction_metrics")
+fig("prediction")
+showtab("county_transport")
+```
+
+Out-of-fold performance is modest. Small differences among these models do not prove that relationships are linear. Held-out forest permutation importance is exported as change in MSE; it measures predictive reliance, not causal importance. County transfer checks use fixed hyperparameters and just two sites; they cannot establish broad transportability.
+
+## AIPW-style adjustment
+
+Repeated five-fold township cross-fitting estimates separate applicant/non-applicant outcome models and application probabilities using fixed-hyperparameter forests. Each respondent's nuisance predictions come from other townships. Adjustment uses background and resource variables, not simultaneous attitudes. Propensities are bounded at .01/.99; clipping counts, balance, and effective sample size are exported.
+
+```{r aipw}
+showtab("aipw_summary",c("repetition","estimate_raw","low","high","min_propensity","max_propensity","clipped","effective_sample_size"))
+fig("overlap")
+```
+
+Each repetition is a sensitivity to splitting, not an independent replication. Intervals cluster influence scores by township. These are raw 1–5 score contrasts. Their interpretation as treatment effects would require unverified consistency, exchangeability, temporal ordering, and overlap assumptions. No causal claim is made.
+
+# 8. Broader exploratory contribution
+
+```{r secondary}
+showtab("secondary_associations",c("analysis","n","estimate","low","high","p_BH_exploratory"))
+```
+
+The broad secondary family receives Benjamini–Hochberg adjustment. These estimates involve different outcomes/scales and must not be ranked by coefficient size. Notable avenues include agricultural dependence, prevention adoption, and effectiveness among users. Applicant satisfaction/timeliness associations are imprecise and do not establish the proposed mechanisms.
+
+```{r secondarycoverage}
+showtab("secondary_coverage")
+showtab("prevention_methods",c("method","users","nonusers","mean_effectiveness_users","recorded_cost_n","median_recorded_cost"))
+```
+
+Prevention letters follow the raw coded fields, whose Chinese descriptions are retained in the full table. Monetary cost nonresponse is common. We do not calculate causal benefit–cost rankings from these incomplete, self-selected responses. Payout amounts are accepted only when the text is an unambiguous numeric response in exactly one amount field; payout/loss ratios are withheld until reference periods are confirmed.
+
+The raw questionnaire supports crop-specific losses, seasonal descriptions, encounters, species, and original-word frequencies. Their complete tables are included. Seasonality is recalled timing, not a repeated-measures panel. Word-frequency counts do not establish validated psychological themes; human Chinese-language interpretation remains necessary.
+
+# 9. Robustness, vibration of effects, and selective-reporting risk
+
+The specification curve crosses prespecified outcomes, adjustment families, raw/log economic predictors, extreme-loss/reporting-contradiction handling, and complete-case versus median/mode covariate sensitivity. Identical model inputs are deduplicated before estimation. Township/village uncertainty variants are retained explicitly. Outcomes are displayed separately because they answer different questions.
+
+Single median/mode imputation is only a limited sensitivity for the few incidental covariate gaps; it is not multiple imputation and does not account for imputation uncertainty. Structural payment nonresponse and missing words are not imputed.
+
+```{r specs}
+fig("specification_curve")
+showtab("specification_summary")
+```
+
+These curves describe analytical sensitivity. They cannot establish that p-hacking never occurred, and the fraction negative/significant is not a posterior probability or an independent-replication count. Historical incorrect reverse coding is excluded from the set of reasonable primary specifications.
+
+```{r clusterrobust}
+jk<-tab("leave_one_township_out")
+knitr::kable(data.frame(check="Leave-one-township-out application contrast",minimum=min(jk$estimate),maximum=max(jk$estimate)),digits=3)
+showtab("county_specific_associations",c("county","estimate","low","high","n","clusters"))
+```
+
+The omitted-confounding grid benchmarks how a hypothetical omitted variable could move the resource-adjusted linear estimate toward zero. It uses partial-R² values for outcome and application residuals. This is a point-estimate bias calculation, not a cluster-adjusted confidence bound, and no particular strength is asserted to be realistic.
+
+```{r confounding}
+showtab("unmeasured_confounding_grid",filter=function(x)x$partial_R2_y==x$partial_R2_d)
+```
+
+# 10. Answers to the Exploratory Contribution
+
+| Requested question | Defensible conclusion |
+|---|---|
+| Do the indicators form the expected constructs? | Not cleanly. Sparse categories, weak word loadings, factor overlap, and weak safety-item coherence challenge a single tidy measurement model. |
+| Remove, reassign, or merge indicators? | Present observed outcomes as primary. Three-item tolerance is a transparent sensitivity. No automated significance-driven deletion or institution–sentiment merger. |
+| Is policy support distinct from intangible costs? | The institutional indicators measure contact/information behavior, not reflective fatigue. Evaluate their interpretation and formative construction before applying HTMT. |
+| Are the proposed structural models defensible? | They are useful exploratory association models. Compare baseline and extended versions; contemporaneous data do not identify path direction. |
+| Does the indirect cost pathway hold? | Its cluster-bootstrap interval includes zero in the rebuilt main model. Do not claim demonstrated mediation. |
+| Does the interaction matter? | Its f² is small and its interval crosses zero. Retain in exploratory/supplementary results, not as the central mechanism. |
+| What does nonsignificant MGA mean? | No strong evidence of differences on the tested paths, conditional on measurement comparability. Not equivalence. |
+| Is the paradox robust? | Several negative management-related associations persist. Conclusions depend on the tolerance dimension and adjustment; the safety item differs. “Negative association among applicants” is more precise than “policy failure.” |
+| Has p-hacking been ruled out? | No statistical test can certify that here. The decision register, complete outputs, honest validation, and deduplicated multiverse reduce selective-reporting risk. |
+
+# 11. Limitations and implementation boundaries
+
+- Cross-sectional, nonrandom application; no verified treatment timing, payment receipt, or pre-policy baseline.
+- Two counties observed in different periods; unknown sampling/exclusion processes limit generalizability.
+- Limited reflective measurement, overlapping attitudes, word nonresponse, and incomplete raw cleaning provenance.
+- Ordinal proportional-odds assumptions are imperfect for some items; sparse alternatives can be unstable.
+- Conventional CFA/MICOM diagnostics do not fully model the sampling design; clustered structural/association checks are complementary.
+- Exploratory analyses reuse this finite sample. Internal splits and cross-fitting do not turn the dataset into independent confirmatory evidence.
+- Some planned extensions require information not in the workbook: validated thematic coding, comparable payout/loss periods, sampling weights, and causal policy identification. They are explicitly withheld.
+
+No outcome was selected because it produced the desired sign. Numerical warnings and earlier failed attempts remain in the event log. The archived legacy results are not overwritten. This release is suitable for methodological discussion; the report can be amended transparently after the presentation and Mengxi's clarifications.
+
+# 12. Reproduction and references
+
+From the project root:
+
+```{bash, eval=FALSE, echo=TRUE}
+Rscript run_project.R --restore
+Rscript run_project.R
+Rscript run_project.R --render
+Rscript run_project.R --verify
+```
+
+`renv.lock` records packages; `run_manifest.json` records source/data hashes and session information. The targets graph rebuilds changed stages. Source data, code, derived tables, and figures remain distinct. The PowerPoint and speaker notes read these same saved results.
+
+Methodological references:
+
+- [Mengxi Kou's LMU dissertation announcement](https://www.sprachlit.lmu.de/carsoncenter/en/upcoming-events-and-news/event/mengxi-kou-on-wild-boars-in-your-yard-cultural-perception-policy-history-and-the-governance-of-human-wild-boar-conflict-7fc0580d.html).
+- [Ordinal estimation in lavaan](https://lavaan.ugent.be/tutorial/cat.html).
+- [psych factor-analysis documentation](https://search.r-project.org/CRAN/refmans/psych/html/00Index.html).
+- [cSEM reference manual](https://cran.univ-lyon1.fr/CRAN/web/packages/cSEM/refman/cSEM.html).
+- [HTMT and reflective discriminant validity](https://www.smartpls.com/documentation/algorithms-and-techniques/validity-and-model-fit/discriminant-validity-assessment/).
+- Simonsohn, Simmons and Nelson (2020), [Specification curve analysis](https://doi.org/10.1038/s41562-020-0912-z).
+- [DoubleML cross-fitting](https://docs.doubleml.org/stable/guide/resampling.html) and [unmeasured-confounding sensitivity](https://docs.doubleml.org/stable/guide/sensitivity.html).
+- [brms model documentation](https://cran.r-project.org/package=brms).

@@ -1,0 +1,14 @@
+"metric","value"
+"respondents",625
+"applicants",277
+"counties",2
+"townships",25
+"villages",178
+"inside_park",105
+"missing_village",1
+"invalid_minimum_ratio",9
+"invalid_desired_ratio",4
+"damage_exceeds_area",7
+"prevention_nonusers",83
+"alpha_four",0.337777445913655
+"alpha_three",0.501882397127206

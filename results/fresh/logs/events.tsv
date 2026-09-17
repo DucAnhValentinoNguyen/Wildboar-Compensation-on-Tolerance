@@ -1,0 +1,40 @@
+2026-09-17 16:22:03	prepare	success	625 respondents; village-disjoint validation split 
+2026-09-17 16:22:05	eda	success	All derived variables and raw question families profiled 
+2026-09-17 16:22:05	polychoric	warning	The items do not have an equal number of response alternatives, global set to FALSE. 
+2026-09-17 16:22:05	polychoric	warning	NaNs produced 
+2026-09-17 16:22:05	polychoric	warning	NaNs produced 
+2026-09-17 16:22:05	polychoric	warning	NaNs produced 
+2026-09-17 16:22:05	polychoric	warning	all scheduled cores encountered errors in user code 
+2026-09-17 16:22:05	polychoric	warning	Something is wrong in polycor  -- Try setting correct=0  
+2026-09-17 16:22:05	polychoric	failed	supply both 'x' and 'y' or a matrix-like 'x' 
+2026-09-17 16:22:06	measurement	success	EFA/PCA and frozen theory/validation CFA attempted; consult diagnostics 
+2026-09-17 16:22:07	partial_PO tol2	warning	(1) Hessian is numerically singular: parameters are not uniquely determined  In addition: Absolute convergence criterion was met, but relative criterion was not met 
+2026-09-17 16:25:17	polychoric	warning	The items do not have an equal number of response alternatives, global set to FALSE. 
+2026-09-17 16:25:17	parallel_analysis	warning	The items do not have an equal number of response alternatives, global set to FALSE. 
+2026-09-17 16:25:20	parallel_analysis	warning	An ultra-Heywood case was detected.  Examine the results carefully 
+2026-09-17 16:25:22	parallel_analysis	warning	An ultra-Heywood case was detected.  Examine the results carefully 
+2026-09-17 16:25:23	parallel_analysis	warning	An ultra-Heywood case was detected.  Examine the results carefully 
+2026-09-17 16:25:24	EFA2	warning	An ultra-Heywood case was detected.  Examine the results carefully 
+2026-09-17 16:29:17	polychoric	warning	The items do not have an equal number of response alternatives, global set to FALSE. 
+2026-09-17 16:29:17	parallel_analysis	warning	The items do not have an equal number of response alternatives, global set to FALSE. 
+2026-09-17 16:29:18	parallel_analysis	warning	An ultra-Heywood case was detected.  Examine the results carefully 
+2026-09-17 16:29:21	parallel_analysis	warning	An ultra-Heywood case was detected.  Examine the results carefully 
+2026-09-17 16:29:22	parallel_analysis	warning	An ultra-Heywood case was detected.  Examine the results carefully 
+2026-09-17 16:29:23	parallel_analysis	warning	An ultra-Heywood case was detected.  Examine the results carefully 
+2026-09-17 16:29:24	EFA2	warning	An ultra-Heywood case was detected.  Examine the results carefully 
+2026-09-17 16:29:49	polychoric	warning	The items do not have an equal number of response alternatives, global set to FALSE. 
+2026-09-17 16:29:49	parallel_analysis	warning	The items do not have an equal number of response alternatives, global set to FALSE. 
+2026-09-17 16:29:50	parallel_analysis	warning	An ultra-Heywood case was detected.  Examine the results carefully 
+2026-09-17 16:29:51	parallel_analysis	warning	An ultra-Heywood case was detected.  Examine the results carefully 
+2026-09-17 16:29:52	parallel_analysis	warning	An ultra-Heywood case was detected.  Examine the results carefully 
+2026-09-17 16:29:52	parallel_analysis	warning	An ultra-Heywood case was detected.  Examine the results carefully 
+2026-09-17 16:29:52	parallel_analysis	warning	An ultra-Heywood case was detected.  Examine the results carefully 
+2026-09-17 16:29:53	parallel_analysis	warning	An ultra-Heywood case was detected.  Examine the results carefully 
+2026-09-17 16:29:54	parallel_analysis	warning	An ultra-Heywood case was detected.  Examine the results carefully 
+2026-09-17 16:29:55	parallel_analysis	warning	An ultra-Heywood case was detected.  Examine the results carefully 
+2026-09-17 16:29:56	parallel_analysis	warning	An ultra-Heywood case was detected.  Examine the results carefully 
+2026-09-17 16:29:56	parallel_analysis	warning	An ultra-Heywood case was detected.  Examine the results carefully 
+2026-09-17 16:29:56	EFA2	warning	An ultra-Heywood case was detected.  Examine the results carefully 
+2026-09-17 16:29:56	EFA_to_CFA	unsupported	Parallel analysis suggests >3 factors among only eight items; no identified >=3-indicator-per-factor CFA inferred 
+2026-09-17 16:29:57	measurement	success	EFA/PCA and frozen theory/validation CFA attempted; consult diagnostics 
+2026-09-17 16:30:51	partial_PO tol2	warning	(1) Hessian is numerically singular: parameters are not uniquely determined  In addition: Absolute convergence criterion was met, but relative criterion was not met 
