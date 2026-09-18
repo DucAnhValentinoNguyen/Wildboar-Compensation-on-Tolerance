@@ -7,6 +7,10 @@ The generated browser report is available at:
 
 `http://141.84.161.41:8000/reports/wildboar-compensation-analysis-2026-09-17.html`
 
+For persistent hosting, use the GitHub Pages deployment (the workflow in `.github/workflows/publish-artifact.yml` publishes the `results` directory after every push):
+
+`https://ducanhvalentinonguyen.github.io/Wildboar-Compensation-on-Tolerance/reports/wildboar-compensation-analysis-2026-09-17.html`
+
 To serve it locally or restart the server after a reboot, run `./serve_artifact.sh` from the repository root. The server uses port 8000 by default (override with `PORT=...`).
 ## Fresh analysis release
 
