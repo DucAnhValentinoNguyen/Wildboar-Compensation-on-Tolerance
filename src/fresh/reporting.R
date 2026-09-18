@@ -62,9 +62,13 @@ render_deliverables<-function(){
     title<-officer::fpar(officer::ftext(s$title,officer::fp_text(font.size=25,bold=TRUE,color="#16324F",font.family="Arial")))
     p<-officer::ph_with(p,title,location=officer::ph_location(left=.45,top=.3,width=9.1,height=.8))
     if(!is.null(s$figure)){
-      p<-officer::ph_with(p,officer::external_img(file.path(OUT,"figures",paste0(s$figure,".png")),width=8.9,height=4.9),location=officer::ph_location(left=.55,top=1.3,width=8.9,height=4.9))
-      body<-officer::fpar(officer::ftext(paste(s$bullets,collapse="\n"),officer::fp_text(font.size=15,color="#16324F",font.family="Arial")))
-      p<-officer::ph_with(p,body,location=officer::ph_location(left=.55,top=6.2,width=8.9,height=.7))
+      # Keep the editable PowerPoint hierarchy consistent with the PDF: bullets first, figure second.
+      # Each bullet gets its own paragraph so PowerPoint preserves readable line spacing.
+      for(j in seq_along(s$bullets)){
+        body<-officer::fpar(officer::ftext(paste0("• ",s$bullets[j]),officer::fp_text(font.size=17,color="#16324F",font.family="Arial")))
+        p<-officer::ph_with(p,body,location=officer::ph_location(left=.65,top=1.12+(j-1)*.42,width=8.7,height=.38))
+      }
+      p<-officer::ph_with(p,officer::external_img(file.path(OUT,"figures",paste0(s$figure,".png")),width=8.9,height=4.55),location=officer::ph_location(left=.55,top=2.02,width=8.9,height=4.55))
     }else{
       for(j in seq_along(s$bullets)){
         body<-officer::fpar(officer::ftext(paste0("• ",s$bullets[j]),officer::fp_text(font.size=21,color="#223344",font.family="Arial")))
