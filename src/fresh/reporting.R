@@ -56,7 +56,7 @@ render_deliverables<-function(){
   # Scale declared main-talk timings to exactly 45 minutes.
   main<-!vapply(slides,`[[`,logical(1),"backup");total<-sum(vapply(slides[main],`[[`,numeric(1),"minutes"))
   for(i in which(main))slides[[i]]$minutes<-slides[[i]]$minutes*45/total
-  p<-officer::read_pptx();notes<-c("# Speaker notes: 45-minute talk + 15-minute discussion","");md<-c("% Compensation application and wild-boar tolerance","% Statistical consulting for Mengxi Kou","% 17 September 2026","")
+  p<-officer::read_pptx();notes<-c("# Speaker notes: 45-minute talk + 15-minute discussion","");md<-c("% Compensation application and wild-boar tolerance","% Statistical consulting for Mengxi Kou","% 22 September 2026","")
   for(i in seq_along(slides)){
     s<-slides[[i]];p<-officer::add_slide(p,layout="Blank",master="Office Theme")
     title<-officer::fpar(officer::ftext(s$title,officer::fp_text(font.size=25,bold=TRUE,color="#16324F",font.family="Arial")))
@@ -75,8 +75,6 @@ render_deliverables<-function(){
         p<-officer::ph_with(p,body,location=officer::ph_location(left=.7,top=1.5+(j-1)*1.12,width=8.6,height=1.02))
       }
     }
-    foot<-officer::fpar(officer::ftext(paste0(if(s$backup)"DISCUSSION BACKUP"else"PRESENTATION RELEASE • 17 SEPT 2026","  |  ",i),officer::fp_text(font.size=9,color="#64748B")))
-    p<-officer::ph_with(p,foot,location=officer::ph_location(left=.5,top=7.12,width=9,height=.2))
     note<-paste0(if(s$backup)"Backup slide"else paste0("Target time: ",round(s$minutes,1)," minutes"),"\n",s$notes)
     p<-officer::set_notes(p,value=note,location=officer::notes_location_type("body"))
     notes<-c(notes,paste0("## ",i,". ",s$title),"",note,"",paste0("- ",s$bullets),"")
