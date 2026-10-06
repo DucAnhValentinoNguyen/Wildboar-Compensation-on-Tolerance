@@ -1,0 +1,90 @@
+==================== (A) WITHIN-COUNTY CE0 -> TOLERANCE ====================
+
+Unadjusted mean tolerance score (PLS composite, standardised) by county x CE0:
+# A tibble: 4 × 5
+  site_baoxing   CE0     n     tol    sd
+         <int> <dbl> <int>   <dbl> <dbl>
+1            0     0   307  0.163  0.991
+2            0     1   158 -0.142  0.783
+3            1     0    41  0.0951 1.23 
+4            1     1   119 -0.266  1.11 
+
+CE0 coefficient on standardised tolerance score (CE0 is 0/1, so this is the
+adjusted gap in SD units; HC3 robust SE):
+     county   n                         model    est     se     lo      hi
+1 Qingchuan 465         total (controls only) -0.237 0.0828 -0.400 -0.0743
+2 Qingchuan 465 direct (controls + mediators) -0.193 0.0783 -0.347 -0.0388
+3   Baoxing 160         total (controls only) -0.323 0.2091 -0.736  0.0900
+4   Baoxing 160 direct (controls + mediators) -0.331 0.2155 -0.756  0.0953
+5    Pooled 625         total (controls only) -0.249 0.0807 -0.408 -0.0910
+6    Pooled 625 direct (controls + mediators) -0.219 0.0748 -0.366 -0.0722
+        p
+1 0.00440
+2 0.01422
+3 0.12430
+4 0.12715
+5 0.00208
+6 0.00353
+
+CE0 x county interaction (direct model):
+     est    se     lo    hi     p
+1 -0.209 0.218 -0.637 0.219 0.337
+
+==================== (B) INDIRECT EFFECTS: CI AND DETECTABLE SIZE ====================
+  mediator      est      se       lo      hi detectable_80
+1       CA -0.00165 0.00456 -0.01004 0.00887        0.0128
+2       PS -0.00127 0.00537 -0.01311 0.01010        0.0150
+3       TC  0.00266 0.00361 -0.00328 0.01124        0.0101
+4       IC -0.01775 0.01410 -0.04771 0.00762        0.0395
+5       IB -0.00599 0.00696 -0.02094 0.00688        0.0195
+
+Direct effect CE0 -> Tol = -0.109. An indirect effect would need to be about
+2.8 x SE in size to be detected with 80% power at alpha = .05.
+
+==================== (C) LATENT-VARIABLE / MEASUREMENT-ERROR SENSITIVITY ====================
+Standardised (std.all) estimates. Tolerance = ordinal latent factor; Intangible Cost =
+PLS composite score with assumed reliability. CE0 is binary, so its std.all value is
+not directly comparable in size to the PLS beta; compare signs and the pattern across rows.
+
+   IC_reliability              quantity est.std     se ci.lower ci.upper
+1             1.0   direct CE0->Tol (c) -0.1445 0.0520  -0.2464  -0.0426
+2             1.0           IC->Tol (b) -0.3839 0.0404  -0.4631  -0.3046
+3             1.0           CE0->IC (a)  0.0381 0.0445  -0.0492   0.1254
+4             1.0 indirect via IC (a*b) -0.0146 0.0171  -0.0482   0.0189
+5             0.9   direct CE0->Tol (c) -0.1423 0.0523  -0.2448  -0.0397
+6             0.9           IC->Tol (b) -0.4171 0.0436  -0.5026  -0.3316
+7             0.9           CE0->IC (a)  0.0404 0.0473  -0.0522   0.1331
+8             0.9 indirect via IC (a*b) -0.0169 0.0197  -0.0556   0.0218
+9             0.8   direct CE0->Tol (c) -0.1392 0.0530  -0.2430  -0.0355
+10            0.8           IC->Tol (b) -0.4604 0.0480  -0.5544  -0.3664
+11            0.8           CE0->IC (a)  0.0432 0.0505  -0.0558   0.1423
+12            0.8 indirect via IC (a*b) -0.0199 0.0233  -0.0656   0.0258
+13            0.7   direct CE0->Tol (c) -0.1348 0.0543  -0.2412  -0.0285
+14            0.7           IC->Tol (b) -0.5198 0.0544  -0.6263  -0.4132
+15            0.7           CE0->IC (a)  0.0467 0.0546  -0.0603   0.1538
+16            0.7 indirect via IC (a*b) -0.0243 0.0285  -0.0801   0.0315
+17            0.6   direct CE0->Tol (c) -0.1280 0.0572  -0.2402  -0.0158
+18            0.6           IC->Tol (b) -0.6080 0.0657  -0.7367  -0.4793
+19            0.6           CE0->IC (a)  0.0512 0.0599  -0.0662   0.1686
+20            0.6 indirect via IC (a*b) -0.0311 0.0366  -0.1028   0.0405
+    pvalue
+1  0.00546
+2  0.00000
+3  0.39217
+4  0.39293
+5  0.00654
+6  0.00000
+7  0.39219
+8  0.39303
+9  0.00855
+10 0.00000
+11 0.39226
+12 0.39324
+13 0.01296
+14 0.00000
+15 0.39227
+16 0.39354
+17 0.02533
+18 0.00000
+19 0.39240
+20 0.39430

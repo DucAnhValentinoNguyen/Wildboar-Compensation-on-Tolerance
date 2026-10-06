@@ -1,0 +1,107 @@
+==================== (a) Tolerance: 4-item vs 3-item specification ====================
+                                       spec        path Original Est.
+PE  ->  Tol...1            4-item Tolerance PE  ->  Tol   0.103665748
+CA  ->  Tol...2            4-item Tolerance CA  ->  Tol  -0.012964573
+PS  ->  Tol...3            4-item Tolerance PS  ->  Tol  -0.038799553
+TC  ->  Tol...4            4-item Tolerance TC  ->  Tol   0.028456891
+IC  ->  Tol...5            4-item Tolerance IC  ->  Tol  -0.371613245
+IB  ->  Tol...6            4-item Tolerance IB  ->  Tol   0.183791791
+PE  ->  Tol...7  3-item Tolerance (primary) PE  ->  Tol   0.105379149
+CA  ->  Tol...8  3-item Tolerance (primary) CA  ->  Tol  -0.007883113
+PS  ->  Tol...9  3-item Tolerance (primary) PS  ->  Tol   0.014775905
+TC  ->  Tol...10 3-item Tolerance (primary) TC  ->  Tol   0.034512782
+IC  ->  Tol...11 3-item Tolerance (primary) IC  ->  Tol  -0.362562437
+IB  ->  Tol...12 3-item Tolerance (primary) IB  ->  Tol   0.188121555
+                 Bootstrap SD    T Stat.
+PE  ->  Tol...1    0.04124683  2.5133021
+CA  ->  Tol...2    0.05553293 -0.2334574
+PS  ->  Tol...3    0.05295862 -0.7326391
+TC  ->  Tol...4    0.03544682  0.8028052
+IC  ->  Tol...5    0.04527177 -8.2084991
+IB  ->  Tol...6    0.03701646  4.9651368
+PE  ->  Tol...7    0.04043888  2.6058871
+CA  ->  Tol...8    0.05329603 -0.1479118
+PS  ->  Tol...9    0.04707687  0.3138677
+TC  ->  Tol...10   0.03476653  0.9927013
+IC  ->  Tol...11   0.04537774 -7.9898749
+IB  ->  Tol...12   0.03654029  5.1483329
+
+
+==================== (b) Multivariate outliers: excluded vs retained ====================
+                                      spec          path Original Est.
+CP_WB  ->  PE...1                All n=625 CP_WB  ->  PE   0.042109782
+CP_WB  ->  CA...2                All n=625 CP_WB  ->  CA   0.127344418
+CP_WB  ->  PS...3                All n=625 CP_WB  ->  PS  -0.103810699
+CP_WB  ->  TC...4                All n=625 CP_WB  ->  TC   0.306879525
+CP_WB  ->  IC...5                All n=625 CP_WB  ->  IC   0.279929531
+CP_WB  ->  IB...6                All n=625 CP_WB  ->  IB  -0.176236412
+PE  ->  Tol...7                  All n=625   PE  ->  Tol   0.105379149
+CA  ->  Tol...8                  All n=625   CA  ->  Tol  -0.007883113
+PS  ->  Tol...9                  All n=625   PS  ->  Tol   0.014775905
+TC  ->  Tol...10                 All n=625   TC  ->  Tol   0.034512782
+IC  ->  Tol...11                 All n=625   IC  ->  Tol  -0.362562437
+IB  ->  Tol...12                 All n=625   IB  ->  Tol   0.188121555
+CP_WB  ->  PE...13 Outliers excluded n=611 CP_WB  ->  PE   0.030187761
+CP_WB  ->  CA...14 Outliers excluded n=611 CP_WB  ->  CA   0.137247666
+CP_WB  ->  PS...15 Outliers excluded n=611 CP_WB  ->  PS  -0.111638935
+CP_WB  ->  TC...16 Outliers excluded n=611 CP_WB  ->  TC   0.336901314
+CP_WB  ->  IC...17 Outliers excluded n=611 CP_WB  ->  IC   0.273675264
+CP_WB  ->  IB...18 Outliers excluded n=611 CP_WB  ->  IB  -0.175325322
+PE  ->  Tol...19   Outliers excluded n=611   PE  ->  Tol   0.114670089
+CA  ->  Tol...20   Outliers excluded n=611   CA  ->  Tol  -0.054002315
+PS  ->  Tol...21   Outliers excluded n=611   PS  ->  Tol  -0.010818288
+TC  ->  Tol...22   Outliers excluded n=611   TC  ->  Tol   0.045065869
+IC  ->  Tol...23   Outliers excluded n=611   IC  ->  Tol  -0.355178304
+IB  ->  Tol...24   Outliers excluded n=611   IB  ->  Tol   0.192424671
+                      T Stat.
+CP_WB  ->  PE...1   0.8913860
+CP_WB  ->  CA...2   1.3980096
+CP_WB  ->  PS...3  -0.7468392
+CP_WB  ->  TC...4   6.6543185
+CP_WB  ->  IC...5   5.1571786
+CP_WB  ->  IB...6  -2.7080127
+PE  ->  Tol...7     2.6058871
+CA  ->  Tol...8    -0.1479118
+PS  ->  Tol...9     0.3138677
+TC  ->  Tol...10    0.9927013
+IC  ->  Tol...11   -7.9898749
+IB  ->  Tol...12    5.1483329
+CP_WB  ->  PE...13  0.6338866
+CP_WB  ->  CA...14  2.2242457
+CP_WB  ->  PS...15 -0.8364782
+CP_WB  ->  TC...16  7.3724919
+CP_WB  ->  IC...17  5.5939130
+CP_WB  ->  IB...18 -3.0710569
+PE  ->  Tol...19    2.8420468
+CA  ->  Tol...20   -1.0874564
+PS  ->  Tol...21   -0.2303275
+TC  ->  Tol...22    1.2240900
+IC  ->  Tol...23   -7.8822770
+IB  ->  Tol...24    5.5819847
+
+
+==================== (c) CA1/CA2 winsorised vs raw ====================
+                                        spec          path Original Est.
+CP_WB  ->  CA...1 3-item Tolerance (primary) CP_WB  ->  CA   0.127344418
+CA  ->  Tol...2   3-item Tolerance (primary)   CA  ->  Tol  -0.007883113
+CP_WB  ->  CA...3  CA1/CA2 winsorised at 1.0 CP_WB  ->  CA   0.162549467
+CA  ->  Tol...4    CA1/CA2 winsorised at 1.0   CA  ->  Tol  -0.079894098
+                     T Stat.
+CP_WB  ->  CA...1  1.3980096
+CA  ->  Tol...2   -0.1479118
+CP_WB  ->  CA...3  2.9494077
+CA  ->  Tol...4   -1.5657751
+
+
+==================== (d) Common Method Bias diagnostics ====================
+Harman's single-factor test: 1st factor explains 9.9 % of variance (rule of thumb concern if >50%)
+
+Full collinearity VIF per indicator (Kock 2015; concern if > 3.3):
+         CP_WB1          CP_WB2          CP_WB3          CP_WB4 TC1_DamagedArea 
+           1.16            1.15            1.16            1.16            1.25 
+   log_econloss             IC1           IC2_1              IB             PS1 
+           1.33            1.32            1.08            1.20            1.12 
+            PS2             CA1             CA2              PE          Tol1_5 
+           1.11            1.03            1.04            1.08            1.47 
+         Tol2_1          Tol4_5 
+           1.53            1.21 

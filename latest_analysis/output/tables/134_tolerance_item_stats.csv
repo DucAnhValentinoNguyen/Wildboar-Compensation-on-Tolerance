@@ -1,0 +1,17 @@
+"item","stat","v"
+"Tol1: supports
+non-lethal management","Item-rest correlation",0.324152154098891
+"Tol1: supports
+non-lethal management","Factor loading (CFA)",0.486832476672584
+"Tol2: opposes
+stricter control","Item-rest correlation",0.387488272438441
+"Tol2: opposes
+stricter control","Factor loading (CFA)",1.04189205677993
+"Tol3: feels
+personally safe","Item-rest correlation",-0.00412659103649297
+"Tol3: feels
+personally safe","Factor loading (CFA)",0.00565436728327619
+"Tol4: accepts
+some damage","Item-rest correlation",0.15022170920576
+"Tol4: accepts
+some damage","Factor loading (CFA)",0.351919991669661

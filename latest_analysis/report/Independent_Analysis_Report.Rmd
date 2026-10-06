@@ -1,0 +1,292 @@
+---
+title: "Compensation Policy and Tolerance Toward Wild Boars"
+subtitle: "An Independent, From-Scratch Statistical Analysis"
+author: "Statistical consulting analysis (Claude)"
+date: "`r format(Sys.Date(), '%Y-%m-%d')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    number_sections: true
+    theme: flatly
+    df_print: kable
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, fig.align = "center")
+library(dplyr); library(knitr); library(kableExtra)
+
+root <- "/home/duc/Wildboar-Compensation-on-Tolerance/latest_analysis"
+tab <- function(f) read.csv(file.path(root, "output/tables", f), check.names = FALSE)
+fig <- function(f) file.path(root, "output/figures", f)
+kt <- function(df, ...) kable(df, digits = 3, ...) %>% kable_styling(bootstrap_options = c("striped","hover","condensed"), full_width = TRUE, font_size = 13)
+```
+
+# Purpose and scope
+
+This report is an **independent, from-scratch** analysis of the wild-boar compensation and tolerance survey (n = 625; Baoxing county, August 2024, and Qingchuan county, March-April 2025; Sichuan Province, China), built without reference to any prior analysis code or write-up on this project. It was commissioned to fully exploit the dataset Mengxi Kou collected in the field, and to give a second, independent methodological opinion on the Wildlife Tolerance Model (WTM; Kansky, Kidd & Knight 2016) that structures her PLS-SEM work, per the three research questions in her project proposal:
+
+1. **RQ1** -- Does compensation for wild-boar damage have a direct effect on tolerance, or is its influence mediated by other social/psychological factors?
+2. **RQ2** -- What roles do tangible costs, intangible costs and intangible benefits play in shaping tolerance, and how do these interact with compensation experience?
+3. **RQ3** -- How robust are these relationships under different model specifications and across groups with/without compensation experience?
+
+The analysis proceeds end to end: raw-data exploration and cleaning &rarr; exploratory factor analysis (EFA) &rarr; confirmatory factor analysis (CFA) &rarr; principal component analysis (PCA) &rarr; PLS-SEM structural modelling for RQ1-RQ3 &rarr; conventional-regression triangulation &rarr; extensions that use parts of the questionnaire the WTM model does not touch.
+
+**Where this analysis agrees with, refines, or departs from the WTM PLS-SEM results Mengxi has already presented internally is flagged explicitly throughout**, since giving a genuine second opinion -- not just re-deriving the same numbers -- is the point of the exercise.
+
+---
+
+# Data and measurement
+
+## Sample and sites
+
+```{r}
+q <- tab("00_data_quality_summary.csv")
+kt(q, col.names = c("Check", "Value"), caption = "Sample composition and data-quality summary")
+```
+
+The two survey counties differ sharply in when they were surveyed (Baoxing: Aug 2024; Qingchuan: Mar-Apr 2025) and in who received compensation: **74% of Baoxing respondents received compensation, versus only 34% in Qingchuan** ($\chi^2$ = 77.1, p < .001). This is the single most important data-quality fact governing the rest of the analysis: **county/survey-wave is a strong confound for anything involving compensation participation**, and every model below controls for it.
+
+## Data-cleaning decisions (all documented, none silent)
+
+- **`IC2_2`/`IC2_3` (2nd/3rd descriptive-word ratings):** the codebook defines this scale as 1-5 only, but 45 and 155 respondents (of 625) show a `0`. This exactly reproduces the pre-existing `IC2_DescriptiveAttitude` variable when those zeros are excluded from the mean -- confirming `0` means *"respondent did not give a 2nd/3rd word,"* not a valid scale point. These are recoded to missing, then imputed with the respondent's own mean valence across the word(s) they did give (rather than dropping ~25% of the sample or borrowing the sample mean).
+- **`CA1`/`CA2` (accepted/expected compensation %):** 9 and 4 respondents respectively report values above 1.0 (up to 8.0 -- i.e., "800%"). These are kept as-is in the primary analysis (a respondent can coherently demand more than their assessed loss) but a winsorised (capped at 1.0) version is carried alongside for a sensitivity check (\@ref(robustness)).
+- **Two readxl mis-typed numeric columns** (`Q10_VegArea`, `CP_A2`) were coerced back to numeric after confirming no genuine text values were lost.
+- Skewed monetary/area variables (income, household assets, economic loss, insurance payment) are log-transformed for modelling.
+- 14 of 625 respondents are multivariate outliers (Mahalanobis p < .001) on the core WTM indicators; results are checked with and without them (\@ref(robustness)).
+
+## Compensation groups differ in assets, not in age/gender/income
+
+```{r}
+ct <- tab("02_compensation_group_tests.csv")
+kt(ct, caption = "With- vs without-compensation groups: Wilcoxon/chi-square tests")
+```
+
+People who received compensation farm more land, keep more livestock, and hold more household assets (all p < .001) -- unsurprising, since compensation is claimed against crop/livestock damage. They do **not** differ in age, gender, education or income. This matters for interpretation: compensation participation is not "as-if random," but it is not simply a proxy for being richer or poorer either -- it tracks exposure (more assets at risk) and, as shown above, county.
+
+---
+
+# Exploratory factor analysis: does the assumed measurement structure hold?
+
+The WTM specifies Tolerance as a single reflective (common-factor) construct and treats Conflict Experience, Tangible/Intangible Cost, Compensation Anticipation and Policy Support as formative composites. EFA lets us check this empirically before committing to a structural model.
+
+```{r}
+tol_fa <- tab("11_efa_tolerance_1factor.csv")
+kt(tol_fa, col.names = c("Item", "Loading"), caption = "EFA: Tolerance items, forced 1-factor solution")
+```
+
+**Key finding: the 4-item Tolerance scale has poor internal consistency (raw $\alpha$ = 0.34).** Item **Tol3** ("wild boars threaten my personal safety") is essentially uncorrelated with the other three (corrected item-total r = 0.02) and loads at 0.006 in EFA -- it does not belong to the same latent trait as the other three items. This is a genuine, previously-undiagnosed measurement weakness, not an artefact of modelling choice: it shows up identically whether we look at raw correlations, EFA, or CFA (next section). Dropping Tol3 raises $\alpha$ to 0.50 (ordinal $\alpha$ = 0.62) -- better, but still below the conventional 0.70 bar. **Every downstream result involving Tolerance as an outcome should be read with this reliability ceiling in mind, independent of which structural-modelling technique is used.**
+
+```{r}
+ic_fa <- tab("12_efa_intangiblecost_2factor.csv")
+kt(ic_fa, caption = "EFA: Intangible Cost items (IC1 + 3 word-ratings), 2-factor solution")
+```
+
+By contrast, **Intangible Cost, Conflict Experience and Policy Support show weak-to-absent common-factor structure** (KMO = 0.51 for Intangible Cost; parallel analysis suggests *zero* factors). Far from being a problem, **this validates keeping them as formative composites** exactly as originally specified: formative indicators are causes, not effects, of the construct, and are not expected to correlate with each other. A general evaluative attitude toward wild boars (IC1) and a spontaneous three-word emotional reaction (IC2) are conceptually different ingredients of "intangible cost," and empirically behaving that way is the expected, correct pattern for a formative index -- not a sign that the construct needs to be split or abandoned.
+
+```{r, fig.cap="Parallel analysis on the full pool of WTM Likert items"}
+knitr::include_graphics(fig("06_efa_scree_full_pool.png"))
+```
+
+---
+
+# Confirmatory factor analysis: pinning down the Tolerance measurement model
+
+```{r}
+cfa_cmp <- tab("21_cfa_model_comparison.csv")
+kt(cfa_cmp, caption = "CFA fit: 4-item vs 3-item (Tol3 dropped) Tolerance")
+```
+
+The 4-item model (WLSMV estimator, ordinal indicators) fits acceptably (robust CFI = .97, robust RMSEA = .083) but **Tol3's loading is 0.006 (t = 0.13, p = .90) -- not significantly different from zero.** The 3-item model is saturated (df = 0, trivially perfect fit) but exposes a further issue: **Tol1 and Tol2 are near-collinear** (standardised loading of Tol2 = 1.05, with a small negative residual variance -- a Heywood case). Substantively this makes sense: Tol1 ("I support non-lethal management") and Tol2 (reverse-coded "government should NOT crack down on boars") are two phrasings of essentially the same *regulatory-preference* attitude, while Tol4 ("I can accept some damage") taps a distinct *personal cost-acceptance* facet (Spearman r with the Tol1+Tol2 composite = 0.25 -- correlated but clearly not the same thing).
+
+Forcing Intangible Cost into a reflective specification (to test discriminant validity against Tolerance) **fails outright**: HTMT(Tolerance, Intangible-Cost-as-reflective) = 1.17, above the 1.0 ceiling. This is a second confirmation, from a completely different angle, that Intangible Cost belongs in a formative role.
+
+**Decision for the structural model:** Tolerance is measured with **Tol1 + Tol2 + Tol4** (Tol3 dropped). Section \@ref(robustness) shows every substantive structural conclusion is essentially unchanged if all 4 items are used instead -- so this is a defensible refinement, not a result-changing one.
+
+---
+
+# Principal component analysis: an unused asset/wealth dimension
+
+The questionnaire records detailed crop areas, livestock counts and asset values that the WTM model never uses (it takes a single manifest item, `Q14_CropAsset`, as "household asset"). A PCA on 15 crop/livestock/asset/income variables extracts a first component explaining 27.9% of variance, correlating strongly with total household assets (r = 0.75) but weakly with income (r = 0.17) -- **income and asset-based wealth are measuring different things in this sample**, and the asset/livestock dimension is the richer livelihood proxy.
+
+```{r, fig.cap="Wealth/livelihood PCA: variable contributions to PC1-PC2", out.width="80%"}
+knitr::include_graphics(fig("08_pca_wealth_biplot.png"))
+```
+
+This wealth index does not directly predict Tolerance (p = .33) but strongly predicts perceived economic loss (&beta; = 0.28, p < .001, controlling for compensation and site) -- wealthier households have more at stake and report it. See \@ref(extended) for the full model.
+
+---
+
+# Core PLS-SEM model (full sample, n = 625) {#core-model}
+
+## Specification
+
+Building on the EFA/CFA findings, the structural model re-specifies the WTM with:
+
+- **Tolerance**: reflective, Tol1+Tol2+Tol4 (Mode A)
+- **Conflict Experience (Wild boar / All species), Tangible Cost, Intangible Cost, Compensation Anticipation, Policy Support**: formative (Mode B), as originally specified -- validated by the EFA/CFA results above
+- Skewed formative indicators (economic loss, insurance payment) entered log-transformed
+- **Two controls the original model never included**: residence inside the national park boundary, and **survey site** (Baoxing vs Qingchuan) -- included because of the compensation/county confound documented above
+- All paths bootstrapped with 5,000 resamples
+
+```{r, fig.cap="Headline structural paths, full sample (n=625). Grey/dashed = not significant at 5%. Controls omitted from the diagram for legibility -- full table below.", out.width="95%"}
+knitr::include_graphics(fig("10_path_diagram_headline.png"))
+```
+
+## Structural results
+
+```{r}
+paths <- tab("41_plssem_full_paths.csv")
+names(paths) <- make.names(names(paths))
+tol_paths <- paths %>% filter(grepl("->  Tol$", path)) %>%
+  select(path, Original.Est., Bootstrap.SD, T.Stat., Bootstrap.P.Val) %>%
+  arrange(Bootstrap.P.Val)
+kt(tol_paths, col.names = c("Path", "Estimate", "SE", "t", "p"),
+   caption = "Paths into Tolerance (full dense model, n=625)")
+```
+
+$R^2$(Tolerance) = 0.234 (adj. 0.214) -- a respectable share of variance for an attitudinal outcome in this literature.
+
+**Reading the results against the client's own preliminary findings:**
+
+- **Intangible Cost &rarr; Tolerance** (&beta; = -0.34, p < .001) is, as previously found, the dominant path.
+- **Intangible Benefit &rarr; Tolerance** (&beta; = 0.16, p < .001) replicates cleanly.
+- **Compensation Participation &rarr; Tolerance direct effect** (&beta; = -0.11, p = .003) **replicates and survives controlling for the site confound** -- an important robustness confirmation of the client's headline, counter-intuitive finding (people who received compensation are *less* tolerant, not more).
+- **Prevention Effectiveness &rarr; Tolerance** (&beta; = 0.11, p = .005) replicates.
+- **Tangible Cost, Compensation Anticipation, Policy Support &rarr; Tolerance** are all non-significant in the full sample, also matching the original Model 0 pattern.
+- **Site has large effects on nearly every mediator** (compensation participation, policy support, tangible/intangible cost, intangible benefit; all |&beta;| between 0.26 and 0.55, p < .001) but **no significant direct effect on Tolerance itself** (&beta; = -0.08, p = .34). In other words: Baoxing and Qingchuan really are different institutional/ecological contexts, and a lot of what varies between them flows into the mediators -- but once the mediators are in the model, site adds nothing further to Tolerance. This is reassuring for the original single-pooled-sample analysis, but it also means **some of what was previously described qualitatively as "Model 1 vs Model 2 differences"** (\@ref(multigroup)) needs a harder look, because those two models were literally estimated on the two different sites in different proportions.
+
+## Measurement-model quality
+
+```{r}
+weights <- tab("42_plssem_full_weights.csv")
+names(weights) <- make.names(names(weights))
+kt(weights %>% select(indicator, Original.Est., T.Stat., Bootstrap.P.Val),
+   col.names = c("Indicator -> Construct", "Weight", "t", "p"),
+   caption = "Outer weights, formative blocks (selected)") %>%
+  scroll_box(height = "350px")
+```
+
+Two measurement-model findings worth flagging:
+
+1. **Compensation Anticipation is effectively a single-indicator construct.** CA1 (lowest accepted %) and CA2 (expected %) have weights indistinguishable from zero (p = .98, .96); only CA3 (willingness to pay for insurance, log-transformed) carries the construct (weight = 0.99, p < .001). This is very likely related to the CA1/CA2 data-quality issue noted above (a handful of >100% values, general noise in self-reported percentages) -- see the winsorising check in \@ref(robustness). **Practically: whatever "Compensation Anticipation" is doing in the model is almost entirely about willingness-to-pay for insurance, not the accepted/expected percentages.**
+2. **Discriminant validity is a genuine concern for Policy Support.** HTMT(Policy Support, Conflict-Experience-All) = 1.01 and HTMT(Policy Support, Site) = 1.22 -- both above the acceptable ceiling. Empirically, "how many institutions/channels a respondent uses" is not cleanly distinguishable from "how severe their general conflict experience is" or from which county they live in. Any interpretation resting heavily on the Policy Support construct specifically (as opposed to the model as a whole) should be made cautiously.
+
+No common-method-bias problem: Harman's single-factor test puts the first unrotated factor at 9.9% of variance (concern threshold is 50%), and full-collinearity VIFs (Kock 2015) are all below 1.6 (concern threshold 3.3).
+
+---
+
+# RQ1 -- Direct effect or mediation? {#rq1}
+
+```{r}
+med <- tab("52_mediation_summary.csv")
+kt(med, caption = "Compensation participation -> Tolerance: effect decomposition")
+ind <- tab("51_mediation_indirect_effects.csv")
+kt(ind %>% select(mediator, Original.Est., Bootstrap.P.Val), col.names=c("Through","Indirect effect","p"),
+   caption = "Bootstrapped specific indirect effects, CE0 -> mediator -> Tolerance")
+```
+
+Using bootstrapped specific-indirect-effect tests (the standard PLS-SEM mediation approach; Nitzl, Rold&aacute;n & Cepeda 2016) through each of the five candidate mediators (Compensation Anticipation, Policy Support, Tangible Cost, Intangible Cost, Intangible Benefit):
+
+- **The direct effect (-0.109, p = .003) dominates.** Total indirect effect through all five mediators combined is only -0.024, and **no single indirect pathway is statistically significant on its own** (largest is through Intangible Cost, -0.018, p = .16).
+- **VAF (variance accounted for by mediation) = 18%** -- consistent with **partial, direct-dominant mediation**, not the fully mediated story implied by a "compensation reshapes narratives and responsibility attribution" framing.
+
+**This is a genuine refinement of the client's own interpretation.** The qualitative narrative built from comparing separately-fitted subgroup models (Section \@ref(multigroup)) suggested compensation acts *through* institutional channels like Policy Support. The formal decomposition here says: most of compensation's (negative) effect on tolerance is a direct association not captured by any of the five measured mediators. Two readings are worth stating plainly: either (a) compensation participation is itself proxying for something not in the model (e.g., unresolved grievance from a slow/unsatisfying claims process, which the survey only measures via CE1/CE2 for the with-compensation subgroup, or unmeasured prior conflict severity), or (b) receiving compensation and reduced tolerance share a common upstream cause not fully captured by Conflict Experience as measured. Either way, **"compensation reduces tolerance" is a description of an association, and this analysis cannot say through what psychological mechanism it operates.**
+
+---
+
+# RQ2 -- Do cost/benefit effects depend on compensation experience? {#rq2}
+
+Rather than only comparing two separately-estimated subgroup models (which conflates "the groups differ in average levels" with "the relationship differs by group" -- see \@ref(multigroup)), RQ2 is tested directly with a **two-stage moderation model**: interaction terms Compensation-Participation &times; Tangible Cost, &times; Intangible Cost, and &times; Intangible Benefit, predicting Tolerance.
+
+```{r}
+mod <- tab("61_moderation_paths.csv")
+kt(mod, caption = "Moderation model: TC/IC/IB x Compensation Participation -> Tolerance")
+```
+
+**None of the three interactions is significant** (all p > .20). The Tangible Cost, Intangible Cost and Intangible Benefit &rarr; Tolerance relationships are the same strength regardless of whether someone has received compensation. **Answer to RQ2: tangible costs play essentially no role either way (as in the full-sample model); intangible costs and benefits are the dominant drivers of tolerance, and this is equally true for people with and without compensation experience -- compensation experience does not change how these factors operate.**
+
+---
+
+# RQ3 -- Robustness {#robustness}
+
+## Across groups (formal test, not just two separate models) {#multigroup}
+
+The client's own approach of fitting Model 1 (with-compensation, n=277) and Model 2 (without-compensation, n=348) separately and comparing coefficients/significance patterns is a natural first pass, but **splitting an already-modest sample roughly in half inflates standard errors and makes point estimates look qualitatively different even when they are not statistically distinguishable.** PLS-MGA (permutation-based path comparison, 2,000 permutations) tests this formally:
+
+```{r}
+cat(readLines(file.path(root, "output/tables/70_multigroup_log.txt"))[12:28], sep = "\n")
+```
+
+**Of twelve structural paths compared between the with- and without-compensation groups, only one differs significantly: Intangible Cost &rarr; Tolerance is more strongly negative for people who received compensation** (-0.41 vs -0.26, p = .04). Every other apparent difference between the client's Model 1 and Model 2 -- including the widely-discussed Policy Support &rarr; Tolerance pattern (strong in the with-compensation model, weak in the without-compensation model) -- **is not statistically distinguishable from sampling noise** once tested directly.
+
+The county comparison (Baoxing vs Qingchuan) shows **no significant structural differences at all** (all p between .32 and .99), even though the two sites differ hugely in *average levels* of nearly every construct (compositional check, same table, lines 1-9). **This is an important and genuinely reassuring finding: the relationships in the model generalise across site/season, even though the raw scores on which they're estimated do not** -- the structural model is not an artefact of pooling two very different populations.
+
+## Across model specifications
+
+```{r}
+tolitems <- tab("81_robustness_tolitems.csv")
+kt(tolitems %>% select(spec, path, `Original Est.`, `T Stat.`), caption = "4-item vs 3-item Tolerance: key structural paths")
+```
+
+Dropping Tol3 (the CFA/EFA-flagged weak item) changes nothing of substance: IC&rarr;Tol, IB&rarr;Tol and PE&rarr;Tol are essentially identical in the 4-item and 3-item specifications. The same holds for excluding the 14 multivariate outliers (all core paths stable in sign, magnitude and significance) and for winsorising the CA1/CA2 anomalies (CA&rarr;Tol stays non-significant either way; CP_WB&rarr;CA becomes *more* clearly significant when winsorised, suggesting those extreme values were adding noise rather than signal to that one path).
+
+**Predictive validity (PLSpredict, Shmueli et al. 2019):** out-of-sample RMSE for the Tolerance indicators is essentially tied with a naive linear-regression benchmark (e.g. Tol1: PLS 0.682 vs LM 0.679). Per the standard PLSpredict decision rule this indicates **medium predictive power** -- the model captures real signal (it is not misspecified in a way that a simple benchmark exposes) but does not dramatically out-predict a simple benchmark. This is a realistic characterisation to report to reviewers who ask about predictive, not just explanatory, validity.
+
+## Clustering / non-independence
+
+Respondents are nested within 178 villages; the single-level PLS-SEM implicitly assumes independence. A cumulative-link mixed model (ordinal outcome, village random intercept) and a village-clustered-SE comparison both confirm **the core conclusions are not an artefact of ignoring this clustering** -- village-clustered SEs are close to naive SEs (e.g. Intangible-Cost-index SE: 0.045 naive vs 0.053 clustered), and Compensation Participation, Intangible Cost and Intangible Benefit remain significant predictors of the Tol1 item in the mixed model.
+
+---
+
+# Conventional-regression triangulation
+
+```{r}
+ols <- tab("91_ols_tolerance.csv")
+kt(ols %>% mutate(across(where(is.numeric), ~round(.,3))), caption = "OLS cross-check: Tolerance (3-item mean) ~ predictors, HC3-robust SE")
+```
+
+An OLS model using simple, auditable sum-score indices (instead of PLS composite scores) reaches the same substantive conclusions as the PLS-SEM model: Compensation Participation (&beta; = -0.169, p = .0005), Intangible Cost index (&beta; = -0.302, p < .001) and Intangible Benefit (&beta; = 0.109, p < .001) are the significant predictors; Tangible Cost and Conflict Experience indices are not. All VIFs are below 2.6 (max for `site_baoxing`). **Two different modelling frameworks, two different measurement approaches (PLS composites vs. simple sum scores), same conclusions** -- about as strong a robustness statement as this kind of survey data can support.
+
+---
+
+# Extended analyses: exploiting the rest of the questionnaire {#extended}
+
+The WTM model uses a subset of what was collected. These extensions use previously-untouched fields (personal encounter history, hunting perceptions, behavioural reactions, mitigation-strategy specifics, and the free-text "three words") to get more value from the fieldwork.
+
+**Household wealth (asset-based PCA index).** Predicts perceived economic loss strongly (&beta; = 0.28, p < .001) but not Tolerance directly -- wealth changes what people report losing, not how tolerant they are.
+
+**Personal threat exposure** (being personally scared/attacked by a wild boar, or a relative being attacked -- 7.7% of respondents). Perhaps counter-intuitively, this does **not** significantly predict either Tolerance (p = .74) or general attitude toward wild boars (p = .97) once the model's existing psychological factors are controlled. Direct personal danger appears to matter less than the diffuse, evaluative "intangible cost" already captured by IC1/IC2.
+
+**Perceived hunting prevalence.** Respondents who believe wild boars are more frequently hunted in their area report *lower* tolerance (&beta; = -0.11, p < .001), controlling for site. This is a new, non-obvious association (direction of causality is not established) worth flagging for Mengxi's domain knowledge of whether perceived lethal control and stated tolerance plausibly reinforce each other locally.
+
+**Behavioural reaction to encountering a wild boar** (evacuate / avoid-coexist / drive away; nobody in this sample reports hunting on personal encounter). More tolerant respondents are relatively more likely to report "avoid/coexist" than either "evacuate" or "drive away" (p = .06 and .05) -- a useful **attitude-behaviour validity check**: the Tolerance scale, despite its measurement weaknesses, correlates with a real behavioural difference, not just with itself.
+
+**Species co-occurrence** (dealing with black bear, monkey, etc. in addition to wild boar; 30% of respondents). No association with wild-boar-specific tolerance (p = .93) -- rules out a plausible confound.
+
+```{r, fig.cap="Mitigation-strategy adoption rate by empirically-derived cluster (k=5, PAM/Gower)", out.width="85%"}
+knitr::include_graphics(fig("09_mitigation_clusters.png"))
+```
+
+**Mitigation-strategy portfolios.** Clustering the seven specific strategies (barriers, disruption devices, human/animal guarding, crop change, relocation/hunting, resettlement) by adoption pattern yields five distinct portfolios, from "essentially nothing" to "everything." Cluster membership does **not** significantly predict Tolerance (p = .18) -- what matters for tolerance (per the core model's PE &rarr; Tolerance path) is *perceived effectiveness* of whatever is used, not the specific combination or count of strategies adopted.
+
+**Free-text "three words."** The top words overall (*disgust, damn, eats crops, horrid, disgusted...*) match the client's own top-10 list; the by-group breakdown is available in the output tables for further qualitative use (e.g. comparing word choice between compensation groups).
+
+---
+
+# Limitations
+
+1. **Tolerance's internal reliability is modest (&alpha; &asymp; 0.5) even after removing the weakest item.** This is a property of the 4-item scale as fielded, not of any particular modelling choice, and it caps how much confidence any technique -- PLS-SEM, CFA, OLS -- can place in Tolerance-outcome effect sizes.
+2. **Policy Support does not cleanly discriminate from Conflict-Experience-All or from survey site** (HTMT > 1). Findings resting specifically on Policy Support's *unique* contribution should be treated as provisional.
+3. Compensation participation is observational, not randomised, and confounded with assets and site; this analysis controls for both, and the compensation &rarr; tolerance direct effect survives, but **residual confounding by unmeasured factors (e.g., claims-process quality) cannot be ruled out.**
+4. Cross-sectional data: all paths are associational. "Direct effect" in the PLS-SEM/mediation sense means "not accounted for by the measured mediators," not "causally direct."
+5. PLSpredict indicates medium (not high) out-of-sample predictive power for the Tolerance indicators -- appropriate to caveat if the model is used for prediction rather than explanation.
+
+---
+
+# Summary answers to the three research questions
+
+- **RQ1:** Compensation participation has a robust, direct, negative association with tolerance (&beta; &asymp; -0.11, survives site/asset controls, replicable across four alternative specifications). Only 18% of its total effect runs through the five measured social/psychological mediators, and no single mediator's indirect path is significant on its own -- the mechanism is not fully explained by this model.
+- **RQ2:** Intangible costs (&beta; &asymp; -0.34) and intangible benefits (&beta; &asymp; +0.16) are the dominant drivers of tolerance; tangible (economic) costs play essentially no role. None of these relationships is significantly moderated by compensation participation -- they operate the same way regardless of compensation status.
+- **RQ3:** The measurement model needs two evidence-based refinements (drop Tolerance item 3; treat Compensation Anticipation as essentially a single-indicator insurance-willingness-to-pay measure) but the structural conclusions are stable across four alternative specifications, robust to outlier exclusion, robust to village-level clustering, and show no common-method-bias signal. Formal multi-group testing overturns most of the previously-drawn with/without-compensation contrasts (they are not statistically significant) while confirming structural stability across the two very different survey sites.

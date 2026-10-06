@@ -1,0 +1,12 @@
+"check","value"
+"N respondents",625
+"With compensation (CE0=1)",277
+"Without compensation (CE0=0)",348
+"Baoxing county",160
+"Qingchuan county",465
+"Living inside NP",105
+"IC2_2 recoded 0->NA (word 2 not given)",45
+"IC2_3 recoded 0->NA (word 3 not given)",155
+"CA1 > 1 (extreme, kept)",9
+"CA2 > 1 (extreme, kept)",4
+"Any missing value outside CE1/CE2 skip pattern",271

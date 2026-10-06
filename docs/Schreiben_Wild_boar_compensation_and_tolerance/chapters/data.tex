@@ -1,0 +1,350 @@
+\subsection{The survey}
+\label{data:survey}
+
+The data come from a cross-sectional household survey: each respondent was
+interviewed exactly once, in person, in Mandarin Chinese. Interviews were
+conducted in two counties bordering Giant Panda National Park, Sichuan
+Province -- Baoxing (15--31 August 2024) and Qingchuan (10 March--10 April
+2025) -- seven months apart. The analysis data set supplied by the project partner contains 625
+respondents and 57 columns (an identifier, three location labels, and 53
+survey variables): 160 respondents from Baoxing and 465 from Qingchuan. Because
+the two counties were not surveyed concurrently, place of residence and survey
+timing cannot be statistically separated from each other in anything that
+follows; every model in this report treats them as a single combined
+\emph{site} covariate for that reason.
+
+The questionnaire covered five thematic blocks: (1) sociodemographics (age,
+gender, education, annual income, household assets, cropland area); (2)
+conflict experience (frequency, duration, severity, species diversity, and
+years of exposure to wild boar and other wildlife); (3) economic and
+intangible costs (estimated damaged crop area and economic loss, alongside a
+general attitude rating and a free-text three-word description of wild boar);
+(4) compensation and mitigation (application for compensation, satisfaction
+with the amount received, mitigation strategies used, and willingness to pay
+for wildlife-damage insurance); and (5) tolerance, measured with four Likert
+items described in Section~\ref{measurement:tolerance}.
+
+\subsection{Compensation status is confounded with county}
+\label{data:confound}
+
+The central grouping variable throughout this project is \emph{compensation
+participation} (construct code \emph{CE0}): a binary indicator of whether a
+household applied for compensation for wild boar damage (277 applicants, 348
+non-applicants). Before any model could treat CE0 as a meaningful predictor, we
+checked whether it was confounded with the county/survey-wave split described
+above. It is, strongly: 119 of 160 respondents in Baoxing (74\%) reported
+applying for compensation, versus only 158 of 465 in Qingchuan (34\%). A
+Pearson chi-squared test of independence on the resulting $2\times2$ table
+(county $\times$ applied for compensation) confirms this gap is far larger than
+sampling noise would produce. For each cell $i$ of the table, let $O_i$ be
+the observed count and $E_i$ the count expected under independence (row
+total times column total, divided by the grand total); the test statistic
+
+\begin{equation}
+\chi^2 = \sum_{i} \frac{(O_i - E_i)^2}{E_i}
+\label{eq:chisq}
+\end{equation}
+
+is compared against a $\chi^2$ distribution with $df = (r-1)(c-1) = 1$
+degree of freedom for an $r=c=2$ table ($\chi^2 = 77.1$, $p < .001$, Yates'
+continuity-corrected; uncorrected $\chi^2 = 78.7$; Fisher's exact test
+$p = 5.8\times10^{-19}$). The corresponding odds ratio is 5.64: a Baoxing
+resident had 5.6 times the odds of having applied for compensation, compared
+with a Qingchuan resident. Because county and survey wave move together with
+compensation status, every model in Sections~\ref{model} and
+\ref{robustness} that includes CE0 as a predictor also includes site as an
+explicit control.
+
+\subsection{Compensation recipients differ in assets, not in who they are}
+\label{data:balance}
+
+We also compared the two compensation groups on the sociodemographic and
+asset variables available for the full sample, using a Wilcoxon rank-sum
+(Mann-Whitney U) test for each continuous variable and a chi-squared test for
+the one categorical variable, gender. This is a covariate-balance check in
+the spirit of a baseline comparison table in an observational study: it asks
+whether recipients and non-recipients of compensation are otherwise similar
+households, not whether these variables predict compensation uptake in a
+multivariate sense. Pooled over both counties, recipients have significantly more total
+cropland, more total livestock, and more household assets (all $p < .001$),
+and a higher share of income from farming ($p = .017$), whereas age
+($p = .401$), gender ($p = .318$), education ($p = .383$), and annual income
+($p = .599$) show no significant difference between the two groups. Read
+on its own this would suggest that compensation is claimed against exposure.
+The next two paragraphs show that this reading is only partly supported,
+because these pooled tests do not account for county.
+
+A direction-of-analysis clarification is worth making explicit here, since
+it is easy to read the comparison above the wrong way round. The tests just
+reported ask, for a variable already split into two known groups (applied
+for compensation vs.\ not), whether that variable's \emph{distribution}
+differs between the groups -- for example, "do cropland holdings differ
+between applicants and non-applicants?" They do not ask the reverse,
+predictive-sounding question -- "if a respondent is male, is he more likely
+to apply for compensation?" -- which would instead treat compensation status
+as an outcome to be predicted \emph{from} gender, age, and the other
+variables. Both questions are legitimate, but they are different questions,
+and this balance check deliberately asks the first one: its purpose is to
+establish whether the two compensation groups are otherwise comparable
+before any later comparison between them is trusted, in the same way a
+baseline-characteristics table works in any observational study. It is not
+an attempt at a predictive model of who applies for compensation, and should
+not be read as one.
+
+The second, predictive-direction question does have an answer in this
+report -- it is simply asked separately, inside the main structural model,
+rather than at this bivariate, exploratory stage. The full model
+(Section~\ref{model:spec}) includes explicit paths from every
+sociodemographic variable \emph{to} compensation participation (CE0), estimated
+jointly with every other path in the model. Table~\ref{tab:demog-to-ce0}
+reports them: household income is the one variable that significantly
+predicts compensation participation ($\beta = 0.080$, $p = .047$); gender is
+close to but does not cross the conventional threshold ($\beta = 0.069$,
+$p = .060$); age, education, and household assets do not reach significance.
+So, to answer the specific example directly: being male is associated with a
+somewhat higher chance of having applied for compensation, but that
+association is borderline, not statistically significant at the conventional
+5\% level, once the other background variables are accounted for
+simultaneously.
+
+\paragraph{Checking the pooled Wilcoxon results in the predictive direction.}
+Because the rank-sum tests above are bivariate and pooled over two very
+different counties, we checked them in two further ways
+(Table~\ref{tab:balance-check}). First, we repeated each test within each
+county. The pooled differences in livestock and household assets disappear
+in Qingchuan ($p = .51$ and $p = .75$) and are present only in Baoxing, so
+they largely reflect county, not a general link between farm size and
+applying. Second, we fitted a logistic regression of compensation
+participation on these variables and gender together
+(Table~\ref{tab:balance-check}). Writing $\pi_i$ for the probability that
+household $i$ applied, the model without county is
+\begin{equation}
+\begin{split}
+\log\frac{\pi_i}{1-\pi_i} = \beta_0 &+ \beta_1\,\text{age}_i + \beta_2\,\text{male}_i
+ + \beta_3\,\text{education}_i + \beta_4\,\text{household size}_i
+ + \beta_5\,\text{income}_i \\ &+ \beta_6\,\text{agricultural share}_i
+ + \beta_7\,\text{cropland}_i + \beta_8\,\text{livestock}_i
+ + \beta_9\,\text{assets}_i ,
+\end{split}
+\label{eq:logit}
+\end{equation}
+and the model with county adds the term $\beta_{10}\,\text{Baoxing}_i$,
+an indicator that is 1 for Baoxing and 0 for Qingchuan. Income, cropland,
+livestock, and assets enter as $\log(1+x)$; all predictors except the two
+indicators are standardised, so $\exp(\beta_j)$ is the odds ratio for a
+one-standard-deviation increase.
+Without county, livestock is the clearest predictor (odds ratio 1.63 per
+standard deviation, $p < .001$). Once county is added, livestock is no longer
+significant, county itself is by far the strongest predictor (odds ratio 8.7),
+and cropland (odds ratio 1.66, $p < .001$) is clearly positively associated
+with applying. Income (odds ratio 1.26, $p = .017$) and household assets
+(odds ratio 0.65, $p = .010$) point in opposite directions and are only
+borderline once the number of tests is accounted for (Table~\ref{tab:test-count});
+the opposite signs most likely reflect collinearity among the three wealth
+measures, so we do not interpret them one by one. The consistent
+conclusion is narrower than our first reading: county is the dominant
+difference between applicants and non-applicants, and, within county, larger
+cropland holdings go with a higher chance of having applied.
+
+\paragraph{How many tests this rests on, and what we finally claim.}
+The comparison of the two compensation groups involved several rounds of
+testing, and we state them all so that the reader can judge how much weight a
+single $p$-value deserves (Table~\ref{tab:test-count}). The first round, the
+balance table, consists of 10 tests: eight Wilcoxon rank-sum tests, one
+chi-squared test for gender, and one for county. The within-county repetition
+adds 16 Wilcoxon tests (eight variables in each of two counties), and the two
+logistic regressions add 19 coefficient tests (nine without county, ten with
+it), 45 tests in all. The five paths from background variables to compensation
+participation in the structural model are part of the main model and are not
+counted here. None of the tests was adjusted for multiplicity in the original
+balance table. With 10 tests at the 5\% level, the chance of at least one
+false positive would be up to about 40\% if no variable truly differed, so
+we applied two standard corrections within each round. The Holm procedure
+\citep{Holm1979} controls the probability of making \emph{even one} false
+positive among the $m$ tests of a round: the $p$-values are sorted from
+smallest to largest, the smallest is multiplied by $m$, the second by $m-1$,
+and so on, and a result counts as significant only if its adjusted value and
+all smaller ones are below .05. The Benjamini--Hochberg procedure
+\citep{Benjamini1995} controls the less strict \emph{false discovery rate},
+the expected share of false positives among the results declared
+significant: the $i$-th smallest $p$-value is multiplied by $m/i$, giving an
+adjusted value $q$. Holm suits a setting where a single false claim is
+costly; Benjamini--Hochberg suits a screening setting such as this one,
+where we look at many variables and accept that a small share of the flagged
+ones may be chance. We use Benjamini--Hochberg as the main criterion and
+report Holm where the two disagree. For example, the share of income from
+agriculture has the fifth-smallest of the 10 $p$-values in the first round
+($p = .017$): its Benjamini--Hochberg value is $.017 \times 10/5 = .034$, and
+its Holm value is $.017 \times 6 = .10$. This does not change the
+main conclusions: in the first round, cropland, livestock, assets, and county
+remain significant, and the share of income from agriculture, which was only
+nominally significant ($p = .017$), remains so at a 5\% false-discovery rate
+($q = .034$) but not under the stricter Holm correction ($p = .10$); we
+therefore give it little weight. In the logistic regression with county,
+cropland ($q < .001$) and county ($q < .001$) are firm, while assets
+($q = .033$) and income ($q = .041$) are borderline.
+
+Our final claims about who applies for compensation are therefore these.
+\begin{enumerate}
+  \item County is by far the largest difference between applicants and
+    non-applicants (odds ratio 8.7 in the joint model; $\chi^2 = 77.1$).
+  \item Larger cropland holdings go with a higher chance of having applied,
+    both within each county and in the joint model. This is the only
+    farm-related variable for which the evidence is consistent.
+  \item The pooled differences in livestock and household assets are mostly
+    a county effect: they are absent in Qingchuan and present only in Baoxing.
+    We therefore do \emph{not} claim that compensation tracks livestock or
+    asset exposure in general.
+  \item Age, gender, and education show no reliable difference between the
+    groups, and annual income and the share of income from agriculture none
+    that we would interpret.
+  \item Compensation status is therefore not standing in for wealth or
+    demographics in general, but we cannot separate it from county and, to a
+    lesser extent, from the size of a household's cropland, which is why both
+    are kept as controls in the main model.
+\end{enumerate}
+
+\begin{table}[htbp]
+\centering
+\caption{Tests behind the comparison of compensation groups. Significant
+means significant at 5\% after Benjamini--Hochberg correction within the
+round.}
+\label{tab:test-count}
+\small
+\begin{tabular}{p{4.8cm}rrp{4.4cm}}
+\hline
+\textbf{Round} & \textbf{Tests} & \textbf{Significant} & \textbf{Which} \\
+\hline
+Balance table (pooled): 8 Wilcoxon, 2 chi-squared & 10 & 5 & Cropland, livestock, assets, share of agricultural income, county \\
+Wilcoxon within Qingchuan & 8 & 2 & Education, cropland (both $q = .043$) \\
+Wilcoxon within Baoxing & 8 & 5 & Age, income, cropland, livestock, assets \\
+Logistic regression without county & 9 & 1 & Livestock \\
+Logistic regression with county & 10 & 4 & County, cropland; assets and income borderline \\
+\hline
+\textbf{Total} & \textbf{45} & & \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Who applies for compensation? Pooled and within-county Wilcoxon
+rank-sum $p$-values, and odds ratios (per standard deviation; money variables
+log-transformed) from a logistic regression of compensation participation
+on all variables jointly, including county, with heteroscedasticity-robust
+confidence intervals.}
+\label{tab:balance-check}
+\small
+\begin{tabular}{p{4.6cm}rrrr}
+\hline
+ & \multicolumn{3}{c}{\textbf{Wilcoxon $p$}} & \textbf{Odds ratio} \\
+\textbf{Variable} & Pooled & Qingchuan & Baoxing & [95\% CI] \\
+\hline
+Age                      & .401   & .884 & .002 & 0.94 [0.76, 1.15] \\
+Education                & .383   & .019 & .091 & 1.22 [1.00, 1.50] \\
+Household size           & .270   & .157 & .552 & 0.82 [0.68, 0.99] \\
+Annual income            & .599   & .567 & .006 & 1.26 [1.04, 1.53] \\
+Share of income from agriculture & .017 & .274 & .306 & 1.04 [0.85, 1.27] \\
+Total cropland           & $<.001$ & .017 & $<.001$ & 1.66 [1.28, 2.16] \\
+Total livestock          & $<.001$ & .508 & $<.001$ & 1.21 [0.96, 1.53] \\
+Household assets         & $<.001$ & .746 & .004 & 0.65 [0.47, 0.90] \\
+Gender (male)            & --- & --- & --- & 1.40 [0.93, 2.10] \\
+County (Baoxing)         & --- & --- & --- & 8.68 [4.94, 15.2] \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Sociodemographic paths to compensation participation (CE0), from the
+full structural model (Section~\ref{model:spec}), estimated jointly with
+every other path in the model.}
+\label{tab:demog-to-ce0}
+\begin{tabular}{lrr}
+\hline
+\textbf{Predictor} & \textbf{$\beta$} & \textbf{$p$} \\
+\hline
+Gender     & 0.069  & .060 \\
+Age        & $-0.017$ & .690 \\
+Education  & 0.069  & .100 \\
+Income (log)     & 0.080  & .047 \\
+Household assets (log) & $-0.006$ & .900 \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Skewness, missing values, and outliers}
+\label{data:quality}
+
+Several monetary and area variables -- insurance willingness-to-pay, income,
+household assets, and damage-related economic loss -- are heavily right-skewed
+(household assets alone range from 77 to 3{,}087{,}729 RMB). All four are
+log(1+x)-transformed before entering any model, so that a handful of very
+large landholders do not dominate otherwise linear relationships.
+
+Is this transformation necessary? For our conclusions, it is not. PLS-SEM
+makes no normality assumption (Section~\ref{model:why-plssem}), so skewness
+is not a modelling requirement here. We therefore re-ran the observed-score
+cross-check regression of tolerance (Section~\ref{app:transform}) with the
+money variables left raw, rank-transformed, and log-transformed.
+The coefficients that carry our conclusions are essentially identical in all
+four versions: compensation participation $-0.165$ to $-0.168$, intangible
+cost $-0.29$ to $-0.30$, intangible benefit $+0.11$ (Table~\ref{tab:transform}).
+Only a borderline coefficient moves: household assets, whose $p$-value is
+$.026$ with the log transform and $.064$ raw, a non-significant coefficient
+in the structural model in either case.
+
+The transformation was a precaution against a few extreme households
+(assets up to 3 million RMB, against a typical range of a few thousand)
+influencing coefficients, decided from each variable's raw distribution
+before any model was fit and applied uniformly to all four variables. It is
+a harmless choice, not an important one, and the results would be the same
+without it. It is also imperfect: because income has zeros, $\log(1+x)$
+turns its right skew (skewness $3.0$) into a left skew ($-3.7$).
+
+Missingness in this dataset is not uniform, and treating all of it the same
+way would have been a mistake. Two compensation-experience items (timeliness
+and payment satisfaction, columns CE1 and CE2) are missing for the 348
+respondents who never applied for compensation -- by survey design (skip
+logic), not data loss -- and are therefore excluded from the main structural
+model entirely, used only in supplementary applicant-only checks. Nine
+respondents' lowest-accepted-percentage answers and four respondents'
+expected-percentage answers (columns CA1, CA2) exceed 100\% of assessed loss
+(up to 800\%); these are kept as genuine responses rather than capped or
+deleted, since a respondent can coherently report wanting more than their
+assessed loss, and a winsorised (capped-at-100\%) version was run separately
+as a sensitivity check with essentially unchanged results. Zero-valued
+responses that are legitimate answers -- prevention effectiveness, channel
+count, and compensation-anticipation variables that define zero as "used
+nothing" or "expects nothing" -- were likewise kept untouched. Apart from
+the two skip-logic columns, and one respondent whose village label is
+missing (the village label is not used in any model), the dataset has no
+missing values in the other variables for all 625 respondents.
+
+Finally, we screened for multivariate outliers using Mahalanobis distance
+across the 15 core indicators of the Wildlife Tolerance Model (seven conflict-
+experience items, two cost items, two benefit items, and four tolerance
+items). For respondent $i$ with indicator vector $x_i \in \mathbb{R}^{15}$,
+sample mean vector $\bar{x}$, and sample covariance matrix $S$, the squared
+Mahalanobis distance is
+
+\begin{equation}
+D_i^2 = (x_i - \bar{x})^\top S^{-1} (x_i - \bar{x}).
+\label{eq:mahalanobis}
+\end{equation}
+
+The matrix $S^{-1}$ rescales and decorrelates the 15 indicators before the
+squared distance is taken, which is what lets $D_i^2$ account for how the
+indicators correlate with each other rather than treating each one's
+distance from the mean independently. Under multivariate normality, $D_i^2$
+approximately follows a chi-squared distribution with 15 degrees of freedom
+(one per variable, by the same logic as Equation~\ref{eq:chisq}); we
+flagged respondents whose distance exceeded the $p < .001$ cutoff
+($D^2 > 37.7$). Fourteen of 625 respondents (2.2\%) were
+flagged -- split evenly across county and compensation status (seven from
+each county, seven with and seven without compensation), so the flagged
+cases are not concentrated in any one group. These respondents were kept in
+the primary analysis (a statistical outlier is not automatically a data
+error), and every core structural result reported in Section~\ref{model} was
+re-estimated excluding them as a robustness check: all paths were stable in
+sign, magnitude, and significance.

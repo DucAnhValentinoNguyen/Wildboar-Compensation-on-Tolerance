@@ -1,0 +1,44 @@
+==================== RQ1: CE0 -> Tolerance mediation decomposition ====================
+
+--- Through CA ---
+             Original Est. Bootstrap Mean Bootstrap SD T Stat. 2.5% CI 97.5% CI
+CE0->CA->Tol        -0.002         -0.001        0.005  -0.363  -0.010    0.009
+             Bootstrap P Val
+CE0->CA->Tol           0.800
+
+--- Through PS ---
+             Original Est. Bootstrap Mean Bootstrap SD T Stat. 2.5% CI 97.5% CI
+CE0->PS->Tol        -0.001         -0.001        0.005  -0.236  -0.013    0.010
+             Bootstrap P Val
+CE0->PS->Tol           0.808
+
+--- Through TC ---
+             Original Est. Bootstrap Mean Bootstrap SD T Stat. 2.5% CI 97.5% CI
+CE0->TC->Tol         0.003          0.003        0.004   0.738  -0.003    0.011
+             Bootstrap P Val
+CE0->TC->Tol           0.382
+
+--- Through IC ---
+             Original Est. Bootstrap Mean Bootstrap SD T Stat. 2.5% CI 97.5% CI
+CE0->IC->Tol        -0.018         -0.019        0.014  -1.259  -0.048    0.008
+             Bootstrap P Val
+CE0->IC->Tol           0.165
+
+--- Through IB ---
+             Original Est. Bootstrap Mean Bootstrap SD T Stat. 2.5% CI 97.5% CI
+CE0->IB->Tol        -0.006         -0.006        0.007  -0.861  -0.021    0.007
+             Bootstrap P Val
+CE0->IB->Tol           0.354
+
+
+--- Direct effect: CE0 -> Tol ---
+             Original Est. Bootstrap Mean Bootstrap SD   T Stat.    2.5% CI
+CE0  ->  Tol    -0.1089011     -0.1087784   0.03598571 -3.026232 -0.1783639
+               97.5% CI Bootstrap P Val
+CE0  ->  Tol -0.0374318          0.0032
+
+Total indirect effect (sum across 5 mediators): -0.024 
+Direct effect: -0.1089 
+Total effect (direct + total indirect): -0.1329 
+VAF (Variance Accounted For by mediators) = 0.181 
+-> Pattern: COMPLEMENTARY (partial) mediation -- both direct and indirect paths present.

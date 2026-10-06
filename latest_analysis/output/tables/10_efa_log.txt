@@ -1,0 +1,203 @@
+
+
+==================== TOLERANCE ITEMS ====================
+Kaiser-Meyer-Olkin factor adequacy
+Call: KMO(r = tol_items)
+Overall MSA =  0.53
+MSA for each item = 
+Tol1_5 Tol2_1 Tol3_1 Tol4_5 
+  0.53   0.52   0.39   0.62 
+$chisq
+[1] 248.8472
+
+$p.value
+[1] 7.232369e-51
+
+$df
+[1] 6
+
+
+Reliability analysis   
+Call: alpha(x = tol_items)
+
+  raw_alpha std.alpha G6(smc) average_r  S/N   ase mean   sd median_r
+      0.34      0.43    0.44      0.16 0.76 0.044  2.3 0.51     0.11
+
+    95% confidence boundaries 
+         lower alpha upper
+Feldt     0.25  0.34  0.42
+Duhachek  0.25  0.34  0.42
+
+ Reliability if an item is dropped:
+       raw_alpha std.alpha G6(smc) average_r  S/N alpha se  var.r   med.r
+Tol1_5      0.15      0.20    0.18     0.077 0.25    0.058 0.0331 -0.0096
+Tol2_1      0.11      0.15    0.12     0.055 0.18    0.061 0.0088  0.0725
+Tol3_1      0.50      0.58    0.52     0.313 1.36    0.034 0.0354  0.2859
+Tol4_5      0.34      0.42    0.41     0.192 0.71    0.048 0.0788  0.0725
+
+ Item statistics 
+         n raw.r std.r r.cor  r.drop mean   sd
+Tol1_5 625  0.61  0.71 0.618  0.3242  2.1 0.69
+Tol2_1 625  0.64  0.74 0.684  0.3875  1.8 0.64
+Tol3_1 625  0.48  0.42 0.017 -0.0041  2.8 1.00
+Tol4_5 625  0.66  0.57 0.288  0.1502  2.4 1.12
+
+Non missing response frequency for each item
+          1    2    3    4    5 miss
+Tol1_5 0.15 0.68 0.12 0.05 0.00    0
+Tol2_1 0.29 0.65 0.03 0.03 0.00    0
+Tol3_1 0.04 0.47 0.17 0.30 0.03    0
+Tol4_5 0.25 0.38 0.12 0.24 0.01    0
+
+Loadings:
+       ML1   
+Tol1_5  0.514
+Tol2_1  0.997
+Tol3_1       
+Tol4_5  0.287
+
+                 ML1
+SS loadings    1.341
+Proportion Var 0.335
+Alt: drop Tol3 -> alpha & unidimensionality
+
+Reliability analysis   
+Call: alpha(x = df %>% select(Tol1_5, Tol2_1, Tol4_5))
+
+  raw_alpha std.alpha G6(smc) average_r S/N   ase mean  sd median_r
+       0.5      0.58    0.52      0.31 1.4 0.034  2.1 0.6     0.29
+
+    95% confidence boundaries 
+         lower alpha upper
+Feldt     0.43   0.5  0.57
+Duhachek  0.44   0.5  0.57
+
+ Reliability if an item is dropped:
+       raw_alpha std.alpha G6(smc) average_r  S/N alpha se var.r med.r
+Tol1_5      0.40      0.44    0.29      0.29 0.80    0.041    NA  0.29
+Tol2_1      0.22      0.24    0.14      0.14 0.32    0.056    NA  0.14
+Tol4_5      0.68      0.68    0.51      0.51 2.10    0.026    NA  0.51
+
+ Item statistics 
+         n raw.r std.r r.cor r.drop mean   sd
+Tol1_5 625  0.65  0.75  0.57   0.34  2.1 0.69
+Tol2_1 625  0.73  0.81  0.70   0.48  1.8 0.64
+Tol4_5 625  0.78  0.65  0.32   0.24  2.4 1.12
+
+Non missing response frequency for each item
+          1    2    3    4    5 miss
+Tol1_5 0.15 0.68 0.12 0.05 0.00    0
+Tol2_1 0.29 0.65 0.03 0.03 0.00    0
+Tol4_5 0.25 0.38 0.12 0.24 0.01    0
+
+
+==================== INTANGIBLE COST ITEMS ====================
+Kaiser-Meyer-Olkin factor adequacy
+Call: KMO(r = ic_items[complete.cases(ic_items), ])
+Overall MSA =  0.51
+MSA for each item = 
+  IC1 IC2_1 IC2_2 IC2_3 
+ 0.51  0.50  0.60  0.50 
+Parallel analysis suggests that the number of factors =  0  and the number of components =  NA 
+Parallel analysis suggested # factors: 0 
+
+Loadings:
+      ML1    ML2   
+IC1    0.351  0.154
+IC2_1         0.594
+IC2_2         0.139
+IC2_3  0.529       
+
+                 ML1   ML2
+SS loadings    0.408 0.397
+Proportion Var 0.102 0.099
+Cumulative Var 0.102 0.201
+
+Loadings:
+      ML1  
+IC1   0.756
+IC2_1 0.142
+IC2_2      
+IC2_3 0.242
+
+                 ML1
+SS loadings    0.657
+Proportion Var 0.164
+
+
+==================== CONFLICT EXPERIENCE ITEMS ====================
+Kaiser-Meyer-Olkin factor adequacy
+Call: KMO(r = cp_items)
+Overall MSA =  0.65
+MSA for each item = 
+CP_WB1 CP_WB2 CP_WB3 CP_WB4  CP_A1  CP_A2  CP_A3 
+  0.67   0.70   0.55   0.67   0.63   0.62   0.63 
+Parallel analysis suggests that the number of factors =  3  and the number of components =  NA 
+Parallel analysis suggested # factors: 3 
+
+Loadings:
+       ML2    ML1   
+CP_WB1  0.394  0.223
+CP_WB2  0.150  0.282
+CP_WB3  0.280 -0.109
+CP_WB4  0.334  0.195
+CP_A1          0.646
+CP_A2   0.676       
+CP_A3          0.422
+
+                 ML2   ML1
+SS loadings    0.825 0.778
+Proportion Var 0.118 0.111
+Cumulative Var 0.118 0.229
+
+
+==================== PS + CA ITEMS ====================
+Kaiser-Meyer-Olkin factor adequacy
+Call: KMO(r = psca_items)
+Overall MSA =  0.51
+MSA for each item = 
+ PS1  PS2  CA1  CA2 
+0.51 0.51 0.53 0.54 
+
+Loadings:
+    ML1    ML2   
+PS1  0.333       
+PS2  0.303       
+CA1         0.198
+CA2         0.169
+
+                 ML1   ML2
+SS loadings    0.203 0.074
+Proportion Var 0.051 0.019
+Cumulative Var 0.051 0.069
+
+
+==================== FULL POOL (all Likert reflective candidates) ====================
+Parallel analysis suggests that the number of factors =  4  and the number of components =  NA 
+Parallel analysis suggested # factors: 4 
+
+Loadings:
+       ML2    ML1    ML4    ML3   
+CP_WB1  0.395                     
+CP_WB2                0.305       
+CP_WB3  0.340                     
+CP_WB4  0.361                     
+CP_A1                 0.626       
+CP_A2   0.672                     
+CP_A3                 0.386       
+IC1     0.462                     
+IC2_1                             
+IC2_2                             
+IC2_3                             
+IB                                
+Tol1_5         0.734              
+Tol2_1         0.708              
+Tol3_1                0.356       
+Tol4_5                       0.824
+PS1                  -0.335       
+PS2                  -0.369       
+
+                 ML2   ML1   ML4   ML3
+SS loadings    1.301 1.188 1.220 0.876
+Proportion Var 0.072 0.066 0.068 0.049
+Cumulative Var 0.072 0.138 0.206 0.255

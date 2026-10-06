@@ -1,0 +1,37 @@
+The electronic supplement accompanying this report contains the following,
+organized as a single project repository:
+
+\begin{sloppypar}
+\begin{itemize}
+  \item \textbf{This report}, as both LaTeX source
+    (\url{Schreiben_Wild_boar_compensation_and_tolerance/}) and
+    compiled PDF.
+  \item \textbf{The presentation slides} delivered on 22 September 2026, as
+    PDF (\url{Final_Presentation.pdf}).
+  \item \textbf{Analysis code}, organized as a \texttt{targets} reproducible
+    pipeline (\url{latest_analysis/scripts/}), with one numbered script
+    per analysis stage (data preparation, exploratory data analysis,
+    exploratory and confirmatory factor analysis, principal component
+    analysis, the primary structural model, mediation, moderation,
+    multi-group analysis, robustness specifications, the sensitivity checks
+    of Section~\ref{discussion:sensitivity}, and reporting).
+    Running the pipeline end to end reproduces every number, table, and
+    figure in this report from the raw survey data.
+  \item \textbf{Output artefacts}: intermediate and final tables, figures,
+    and fitted model objects (\url{latest_analysis/output/}), and a full
+    standalone analysis write-up
+    (\url{Wildboar_Compensation_Analysis_FULL_offline.html}) covering
+    additional diagnostic detail beyond the scope of the main report.
+  \item \textbf{The raw and cleaned survey data}, together with the project
+    exposé supplied by the project partner
+    (\url{docs/Expose_LMU_Compensation_Kou.pdf}), subject to the data
+    protection and usage restrictions agreed with the project partner.
+\end{itemize}
+\end{sloppypar}
+
+Code is documented with in-line comments explaining the purpose of each
+script and, where a choice is non-obvious, the reasoning behind it; each
+script can be run independently given the cleaned data object it depends on,
+and the full pipeline can be run end to end via \texttt{targets::tar\_make()}.
+We aspire to, without formally certifying, the standard of the
+\emph{Biometrical Journal}'s Checklist for Code Supplements.

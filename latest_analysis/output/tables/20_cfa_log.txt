@@ -1,0 +1,338 @@
+
+==================== MODEL A: 4-item unidimensional ====================
+lavaan 0.7-2 ended normally after 21 iterations
+
+  Estimator                                       DWLS
+  Optimization method                           NLMINB
+  Number of model parameters                        20
+
+  Number of observations                           625
+
+Model Test User Model:
+                                              Standard      Scaled
+  Test Statistic                                 8.429      11.806
+  Degrees of freedom                                 2           2
+  P-value (Unknown)                                 NA       0.003
+  Scaling correction factor                                  0.719
+  Shift parameter                                            0.075
+    simple second-order correction                                
+
+Model Test Baseline Model:
+
+  Test statistic                               470.495     422.899
+  Degrees of freedom                                 6           6
+  P-value                                           NA       0.000
+  Scaling correction factor                                  1.114
+
+User Model versus Baseline Model:
+
+  Comparative Fit Index (CFI)                    0.986       0.976
+  Tucker-Lewis Index (TLI)                       0.958       0.929
+                                                                  
+  Robust Comparative Fit Index (CFI)                         0.969
+  Robust Tucker-Lewis Index (TLI)                            0.908
+
+Root Mean Square Error of Approximation:
+
+  RMSEA                                          0.072       0.089
+  90 Percent confidence interval - lower         0.027       0.045
+  90 Percent confidence interval - upper         0.125       0.140
+  P-value H_0: RMSEA <= 0.050                    0.181       0.071
+  P-value H_0: RMSEA >= 0.080                    0.460       0.672
+                                                                  
+  Robust RMSEA                                               0.083
+  90 Percent confidence interval - lower                     0.038
+  90 Percent confidence interval - upper                     0.136
+  P-value H_0: Robust RMSEA <= 0.050                         0.104
+  P-value H_0: Robust RMSEA >= 0.080                         0.605
+
+Standardized Root Mean Square Residual:
+
+  SRMR                                           0.034       0.034
+
+Goodness of Fit Index:
+
+  Goodness of Fit Index (GFI)                    0.995            
+  90 Percent confidence interval - lower         0.985            
+  90 Percent confidence interval - upper         0.999            
+                                                                  
+  Robust GFI                                                 0.993
+  90 Percent confidence interval - lower                     0.982
+  90 Percent confidence interval - upper                     0.999
+
+Parameter Estimates:
+
+  Parameterization                               Delta
+  Standard errors                           Robust.sem
+  Information                                 Expected
+  Information saturated (h1) model        Unstructured
+
+Latent Variables:
+                   Estimate  Std.Err  z-value  P(>|z|)   Std.lv  Std.all
+  Tol =~                                                                
+    Tol1_5            1.000                               0.487    0.487
+    Tol2_1            2.140    0.447    4.785    0.000    1.042    1.042
+    Tol3_1            0.012    0.089    0.131    0.896    0.006    0.006
+    Tol4_5            0.723    0.079    9.201    0.000    0.352    0.352
+
+Thresholds:
+                   Estimate  Std.Err  z-value  P(>|z|)   Std.lv  Std.all
+    Tol1_5|t1        -1.035    0.061  -16.889    0.000   -1.035   -1.035
+    Tol1_5|t2         0.968    0.060   16.213    0.000    0.968    0.968
+    Tol1_5|t3         1.649    0.085   19.439    0.000    1.649    1.649
+    Tol1_5|t4         2.727    0.233   11.694    0.000    2.727    2.727
+    Tol2_1|t1        -0.564    0.053  -10.604    0.000   -0.564   -0.564
+    Tol2_1|t2         1.522    0.078   19.461    0.000    1.522    1.522
+    Tol2_1|t3         1.875    0.100   18.767    0.000    1.875    1.875
+    Tol2_1|t4         2.948    0.309    9.535    0.000    2.948    2.948
+    Tol3_1|t1        -1.770    0.092  -19.175    0.000   -1.770   -1.770
+    Tol3_1|t2         0.018    0.050    0.360    0.719    0.018    0.018
+    Tol3_1|t3         0.454    0.052    8.720    0.000    0.454    0.454
+    Tol3_1|t4         1.899    0.102   18.654    0.000    1.899    1.899
+    Tol4_5|t1        -0.671    0.054  -12.307    0.000   -0.671   -0.671
+    Tol4_5|t2         0.346    0.051    6.741    0.000    0.346    0.346
+    Tol4_5|t3         0.686    0.055   12.537    0.000    0.686    0.686
+    Tol4_5|t4         2.489    0.177   14.038    0.000    2.489    2.489
+
+Variances:
+                   Estimate  Std.Err  z-value  P(>|z|)   Std.lv  Std.all
+   .Tol1_5            0.763                               0.763    0.763
+   .Tol2_1           -0.086                              -0.086   -0.086
+   .Tol3_1            1.000                               1.000    1.000
+   .Tol4_5            0.876                               0.876    0.876
+    Tol               0.237    0.053    4.453    0.000    1.000    1.000
+
+
+==================== MODEL B: 3-item (Tol3 dropped) ====================
+lavaan 0.7-2 ended normally after 17 iterations
+
+  Estimator                                       DWLS
+  Optimization method                           NLMINB
+  Number of model parameters                        15
+
+  Number of observations                           625
+
+Model Test User Model:
+                                              Standard      Scaled
+  Test Statistic                                 0.000       0.000
+  Degrees of freedom                                 0           0
+
+Model Test Baseline Model:
+
+  Test statistic                               462.040     424.411
+  Degrees of freedom                                 3           3
+  P-value                                           NA       0.000
+  Scaling correction factor                                  1.089
+
+User Model versus Baseline Model:
+
+  Comparative Fit Index (CFI)                    1.000       1.000
+  Tucker-Lewis Index (TLI)                       1.000       1.000
+                                                                  
+  Robust Comparative Fit Index (CFI)                         1.000
+  Robust Tucker-Lewis Index (TLI)                            1.000
+
+Root Mean Square Error of Approximation:
+
+  RMSEA                                          0.000       0.000
+  90 Percent confidence interval - lower         0.000       0.000
+  90 Percent confidence interval - upper         0.000       0.000
+  P-value H_0: RMSEA <= 0.050                       NA          NA
+  P-value H_0: RMSEA >= 0.080                       NA          NA
+                                                                  
+  Robust RMSEA                                               0.000
+  90 Percent confidence interval - lower                     0.000
+  90 Percent confidence interval - upper                     0.000
+  P-value H_0: Robust RMSEA <= 0.050                            NA
+  P-value H_0: Robust RMSEA >= 0.080                            NA
+
+Standardized Root Mean Square Residual:
+
+  SRMR                                           0.000       0.000
+
+Goodness of Fit Index:
+
+  Goodness of Fit Index (GFI)                    1.000            
+  90 Percent confidence interval - lower         1.000            
+  90 Percent confidence interval - upper         1.000            
+                                                                  
+  Robust GFI                                                    NA
+  90 Percent confidence interval - lower                     1.000
+  90 Percent confidence interval - upper                     1.000
+
+Parameter Estimates:
+
+  Parameterization                               Delta
+  Standard errors                           Robust.sem
+  Information                                 Expected
+  Information saturated (h1) model        Unstructured
+
+Latent Variables:
+                   Estimate  Std.Err  z-value  P(>|z|)   Std.lv  Std.all
+  Tol =~                                                                
+    Tol1_5            1.000                               0.485    0.485
+    Tol2_1            2.158    0.454    4.758    0.000    1.046    1.046
+    Tol4_5            0.724    0.079    9.215    0.000    0.351    0.351
+
+Thresholds:
+                   Estimate  Std.Err  z-value  P(>|z|)   Std.lv  Std.all
+    Tol1_5|t1        -1.035    0.061  -16.889    0.000   -1.035   -1.035
+    Tol1_5|t2         0.968    0.060   16.213    0.000    0.968    0.968
+    Tol1_5|t3         1.649    0.085   19.439    0.000    1.649    1.649
+    Tol1_5|t4         2.727    0.233   11.694    0.000    2.727    2.727
+    Tol2_1|t1        -0.564    0.053  -10.604    0.000   -0.564   -0.564
+    Tol2_1|t2         1.522    0.078   19.461    0.000    1.522    1.522
+    Tol2_1|t3         1.875    0.100   18.767    0.000    1.875    1.875
+    Tol2_1|t4         2.948    0.309    9.535    0.000    2.948    2.948
+    Tol4_5|t1        -0.671    0.054  -12.307    0.000   -0.671   -0.671
+    Tol4_5|t2         0.346    0.051    6.741    0.000    0.346    0.346
+    Tol4_5|t3         0.686    0.055   12.537    0.000    0.686    0.686
+    Tol4_5|t4         2.489    0.177   14.038    0.000    2.489    2.489
+
+Variances:
+                   Estimate  Std.Err  z-value  P(>|z|)   Std.lv  Std.all
+   .Tol1_5            0.765                               0.765    0.765
+   .Tol2_1           -0.094                              -0.094   -0.094
+   .Tol4_5            0.877                               0.877    0.877
+    Tol               0.235    0.053    4.428    0.000    1.000    1.000
+
+Reliability (omega), Model B:
+                Tol
+alpha     0.5031396
+alpha.ord 0.6158036
+omega     0.5108280
+omega2    0.5108280
+omega3    0.5108280
+avevar    0.4842029
+
+==================== Tol1+Tol2 vs Tol4: correlation check ====================
+
+	Spearman's rank correlation rho
+
+data:  tol12 and df$Tol4_5
+S = 30700823, p-value = 4.955e-10
+alternative hypothesis: true rho is not equal to 0
+sample estimates:
+      rho 
+0.2454946 
+
+
+==================== MODEL D: Tolerance + reflective IC subset, discriminant check ====================
+lavaan 0.7-2 ended normally after 22 iterations
+
+  Estimator                                       DWLS
+  Optimization method                           NLMINB
+  Number of model parameters                        25
+
+  Number of observations                           625
+
+Model Test User Model:
+                                              Standard      Scaled
+  Test Statistic                                12.170      18.160
+  Degrees of freedom                                 4           4
+  P-value (Unknown)                                 NA       0.001
+  Scaling correction factor                                  0.673
+  Shift parameter                                            0.067
+    simple second-order correction                                
+
+Model Test Baseline Model:
+
+  Test statistic                               687.217     602.464
+  Degrees of freedom                                10          10
+  P-value                                           NA       0.000
+  Scaling correction factor                                  1.143
+
+User Model versus Baseline Model:
+
+  Comparative Fit Index (CFI)                    0.988       0.976
+  Tucker-Lewis Index (TLI)                       0.970       0.940
+                                                                  
+  Robust Comparative Fit Index (CFI)                         0.946
+  Robust Tucker-Lewis Index (TLI)                            0.866
+
+Root Mean Square Error of Approximation:
+
+  RMSEA                                          0.057       0.075
+  90 Percent confidence interval - lower         0.022       0.042
+  90 Percent confidence interval - upper         0.095       0.112
+  P-value H_0: RMSEA <= 0.050                    0.317       0.096
+  P-value H_0: RMSEA >= 0.080                    0.180       0.459
+                                                                  
+  Robust RMSEA                                               0.100
+  90 Percent confidence interval - lower                     0.056
+  90 Percent confidence interval - upper                     0.148
+  P-value H_0: Robust RMSEA <= 0.050                         0.032
+  P-value H_0: Robust RMSEA >= 0.080                         0.793
+
+Standardized Root Mean Square Residual:
+
+  SRMR                                           0.039       0.039
+
+Goodness of Fit Index:
+
+  Goodness of Fit Index (GFI)                    0.995            
+  90 Percent confidence interval - lower         0.986            
+  90 Percent confidence interval - upper         0.999            
+                                                                  
+  Robust GFI                                                 0.984
+  90 Percent confidence interval - lower                     0.966
+  90 Percent confidence interval - upper                     0.995
+
+Parameter Estimates:
+
+  Parameterization                               Delta
+  Standard errors                           Robust.sem
+  Information                                 Expected
+  Information saturated (h1) model        Unstructured
+
+Latent Variables:
+                   Estimate  Std.Err  z-value  P(>|z|)   Std.lv  Std.all
+  Tol =~                                                                
+    Tol1_5            1.000                               0.594    0.594
+    Tol2_1            1.382    0.131   10.557    0.000    0.821    0.821
+    Tol4_5            0.738    0.079    9.325    0.000    0.439    0.439
+  ICr =~                                                                
+    IC1               1.000                               0.545    0.545
+    IC2_1             0.443    0.102    4.359    0.000    0.241    0.241
+
+Covariances:
+                   Estimate  Std.Err  z-value  P(>|z|)   Std.lv  Std.all
+  Tol ~~                                                                
+    ICr              -0.334    0.039   -8.640    0.000   -1.031   -1.031
+
+Thresholds:
+                   Estimate  Std.Err  z-value  P(>|z|)   Std.lv  Std.all
+    Tol1_5|t1        -1.035    0.061  -16.889    0.000   -1.035   -1.035
+    Tol1_5|t2         0.968    0.060   16.213    0.000    0.968    0.968
+    Tol1_5|t3         1.649    0.085   19.439    0.000    1.649    1.649
+    Tol1_5|t4         2.727    0.233   11.694    0.000    2.727    2.727
+    Tol2_1|t1        -0.564    0.053  -10.604    0.000   -0.564   -0.564
+    Tol2_1|t2         1.522    0.078   19.461    0.000    1.522    1.522
+    Tol2_1|t3         1.875    0.100   18.767    0.000    1.875    1.875
+    Tol2_1|t4         2.948    0.309    9.535    0.000    2.948    2.948
+    Tol4_5|t1        -0.671    0.054  -12.307    0.000   -0.671   -0.671
+    Tol4_5|t2         0.346    0.051    6.741    0.000    0.346    0.346
+    Tol4_5|t3         0.686    0.055   12.537    0.000    0.686    0.686
+    Tol4_5|t4         2.489    0.177   14.038    0.000    2.489    2.489
+    IC1|t1           -2.948    0.309   -9.535    0.000   -2.948   -2.948
+    IC1|t2           -2.037    0.114  -17.851    0.000   -2.037   -2.037
+    IC1|t3           -0.531    0.053  -10.056    0.000   -0.531   -0.531
+    IC2_1|t1         -1.732    0.090  -19.281    0.000   -1.732   -1.732
+    IC2_1|t2         -1.485    0.076  -19.415    0.000   -1.485   -1.485
+    IC2_1|t3         -0.459    0.052   -8.799    0.000   -0.459   -0.459
+    IC2_1|t4          0.937    0.059   15.865    0.000    0.937    0.937
+
+Variances:
+                   Estimate  Std.Err  z-value  P(>|z|)   Std.lv  Std.all
+   .Tol1_5            0.647                               0.647    0.647
+   .Tol2_1            0.325                               0.325    0.325
+   .Tol4_5            0.808                               0.808    0.808
+   .IC1               0.703                               0.703    0.703
+   .IC2_1             0.942                               0.942    0.942
+    Tol               0.353    0.042    8.339    0.000    1.000    1.000
+    ICr               0.297    0.117    2.539    0.011    1.000    1.000
+
+HTMT (Tol vs reflective-IC subset):
+      Tol   ICr
+Tol 1.000      
+ICr 1.168 1.000

@@ -1,0 +1,126 @@
+==================== OLS: Tolerance (3-item mean) ~ predictors ====================
+
+Call:
+lm(formula = tol_mean_no3 ~ CE0 + cpwb_idx + tc_idx + ic_idx + 
+    IB + PS1 + PS2 + gender + age + education + log_income + 
+    log_hh_asset + in_np + site_baoxing, data = df)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-1.33156 -0.36867 -0.03384  0.31008  2.39893 
+
+Coefficients:
+               Estimate Std. Error t value Pr(>|t|)    
+(Intercept)   2.0603922  0.3324087   6.198 1.05e-09 ***
+CE0          -0.1688084  0.0503953  -3.350 0.000859 ***
+cpwb_idx     -0.0203929  0.0452496  -0.451 0.652384    
+tc_idx        0.0172347  0.0293952   0.586 0.557885    
+ic_idx       -0.3022639  0.0387411  -7.802 2.65e-14 ***
+IB            0.1092916  0.0222999   4.901 1.22e-06 ***
+PS1          -0.1079087  0.0456199  -2.365 0.018323 *  
+PS2          -0.0283502  0.0275722  -1.028 0.304255    
+gender       -0.0395093  0.0506262  -0.780 0.435451    
+age          -0.0008662  0.0024540  -0.353 0.724218    
+education     0.0166303  0.0272044   0.611 0.541223    
+log_income    0.0043929  0.0123702   0.355 0.722623    
+log_hh_asset  0.0259786  0.0133731   1.943 0.052525 .  
+in_np        -0.0365921  0.0751519  -0.487 0.626498    
+site_baoxing  0.0466488  0.0792090   0.589 0.556124    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.5455 on 610 degrees of freedom
+Multiple R-squared:  0.1895,	Adjusted R-squared:  0.1709 
+F-statistic: 10.18 on 14 and 610 DF,  p-value: < 2.2e-16
+
+
+VIFs:
+         CE0     cpwb_idx       tc_idx       ic_idx           IB          PS1 
+    1.316328     1.240344     1.262833     1.158306     1.204680     1.234422 
+         PS2       gender          age    education   log_income log_hh_asset 
+    1.380764     1.138986     1.346926     1.340393     1.195671     1.426259 
+       in_np site_baoxing 
+    1.658047     2.509842 
+
+Robust (HC3) SEs:
+
+t test of coefficients:
+
+                Estimate  Std. Error t value  Pr(>|t|)    
+(Intercept)   2.06039220  0.34123524  6.0380 2.711e-09 ***
+CE0          -0.16880844  0.04811284 -3.5086 0.0004836 ***
+cpwb_idx     -0.02039288  0.04584202 -0.4449 0.6565851    
+tc_idx        0.01723466  0.02855067  0.6037 0.5462997    
+ic_idx       -0.30226393  0.04813693 -6.2793 6.464e-10 ***
+IB            0.10929159  0.02300159  4.7515 2.521e-06 ***
+PS1          -0.10790871  0.04916523 -2.1948 0.0285528 *  
+PS2          -0.02835022  0.02943073 -0.9633 0.3357855    
+gender       -0.03950934  0.05143898 -0.7681 0.4427359    
+age          -0.00086623  0.00254328 -0.3406 0.7335237    
+education     0.01663028  0.02796811  0.5946 0.5523207    
+log_income    0.00439289  0.01341818  0.3274 0.7434904    
+log_hh_asset  0.02597858  0.01286558  2.0192 0.0439001 *  
+in_np        -0.03659206  0.07684221 -0.4762 0.6341043    
+site_baoxing  0.04664885  0.08979646  0.5195 0.6036037    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+
+
+==================== Cumulative link mixed model (per-item ordinal, village random intercept) ====================
+Cumulative Link Mixed Model fitted with the Laplace approximation
+
+formula: Tol1_5_ord ~ CE0 + cpwb_idx + tc_idx + ic_idx + IB + gender +  
+    age + education + log_income + log_hh_asset + in_np + site_baoxing +  
+    (1 | village_f)
+data:    df
+
+ link  threshold nobs logLik  AIC     niter      max.grad cond.H 
+ logit flexible  625  -531.04 1096.07 1571(3432) 9.61e-03 2.6e+06
+
+Random effects:
+ Groups    Name        Variance Std.Dev.
+ village_f (Intercept) 0.2002   0.4474  
+Number of groups:  village_f 178 
+
+Coefficients:
+              Estimate Std. Error z value Pr(>|z|)    
+CE0          -0.538565   0.202334  -2.662  0.00777 ** 
+cpwb_idx     -0.449380   0.184920  -2.430  0.01509 *  
+tc_idx        0.041790   0.118475   0.353  0.72429    
+ic_idx       -0.909292   0.165481  -5.495 3.91e-08 ***
+IB            0.255823   0.093617   2.733  0.00628 ** 
+gender       -0.307444   0.206871  -1.486  0.13724    
+age          -0.002136   0.009851  -0.217  0.82838    
+education     0.052427   0.112049   0.468  0.63986    
+log_income   -0.035815   0.051049  -0.702  0.48293    
+log_hh_asset  0.062038   0.056495   1.098  0.27216    
+in_np         0.260141   0.343394   0.758  0.44872    
+site_baoxing -1.484777   0.342704  -4.333 1.47e-05 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Threshold coefficients:
+    Estimate Std. Error z value
+1|2  -3.5779     1.2459  -2.872
+2|3   0.5405     1.2387   0.436
+3|4   2.0479     1.2465   1.643
+4|5   5.0025     1.4235   3.514
+
+
+==================== Cluster-robust SE comparison (village clustering) ====================
+Naive OLS SEs:
+ (Intercept)          CE0     cpwb_idx       tc_idx       ic_idx           IB 
+      0.3488       0.0560       0.0524       0.0341       0.0448       0.0259 
+      gender          age    education   log_income log_hh_asset        in_np 
+      0.0586       0.0028       0.0315       0.0143       0.0155       0.0872 
+site_baoxing 
+      0.0848 
+
+Village-clustered SEs:
+ (Intercept)          CE0     cpwb_idx       tc_idx       ic_idx           IB 
+      0.3506       0.0502       0.0570       0.0262       0.0531       0.0272 
+      gender          age    education   log_income log_hh_asset        in_np 
+      0.0581       0.0027       0.0329       0.0154       0.0174       0.0938 
+site_baoxing 
+      0.0929 

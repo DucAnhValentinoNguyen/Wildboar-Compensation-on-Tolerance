@@ -1,0 +1,112 @@
+== SAMPLE ==
+n = 625 | raw columns = 57 
+
+  Baoxing Qingchuan 
+      160       465 
+
+  0   1 
+348 277 
+           
+              0   1
+  Baoxing    41 119
+  Qingchuan 307 158
+Missing per raw column (non-zero only):
+Q1_Village        CE1        CE2 
+         1        348        348 
+
+== COUNTY x CE0 ==
+
+	Pearson's Chi-squared test with Yates' continuity correction
+
+data:  tb
+X-squared = 77.091, df = 1, p-value < 2.2e-16
+
+
+	Pearson's Chi-squared test
+
+data:  tb
+X-squared = 78.719, df = 1, p-value < 2.2e-16
+
+Fisher p = 5.847627e-19  cond. OR = 0.1778508 
+sample OR = 5.639549  Cramer V = 0.3548957 
+           
+                0     1
+  Baoxing    89.1  70.9
+  Qingchuan 258.9 206.1
+
+== RANGES / OUT OF RANGE ==
+hh_asset range: 76.704 3087729 
+CA1>1: 9  CA2>1: 4  max: 8 6.5 
+IC2_2 zeros: 45  IC2_3 zeros: 155 
+
+== TOLERANCE RELIABILITY ==
+alpha 4-item: 0.3381534  3-item: 0.5031396 
+4-item item statistics (r.drop = correlation with sum of the OTHER items; r.cor = corrected for overlap+reliability):
+       raw.r r.cor r.drop
+Tol1_5 0.609 0.618  0.324
+Tol2_1 0.637 0.684  0.387
+Tol3_1 0.483 0.017 -0.004
+Tol4_5 0.660 0.288  0.150
+manual r.drop check: 0.324 0.387 -0.004 0.15 
+3-item r.drop:
+       raw.r r.cor r.drop
+Tol1_5 0.655 0.575  0.337
+Tol2_1 0.733 0.697  0.483
+Tol4_5 0.779 0.319  0.241
+ordinal alpha (polychoric), 3-item: 0.6158038 
+polychoric correlations, 4 items:
+       Tol1_5 Tol2_1 Tol3_1 Tol4_5
+Tol1_5  1.000  0.507  0.084  0.170
+Tol2_1  0.507  1.000 -0.029  0.367
+Tol3_1  0.084 -0.029  1.000 -0.060
+Tol4_5  0.170  0.367 -0.060  1.000
+Pearson correlations, 4 items:
+       Tol1_5 Tol2_1 Tol3_1 Tol4_5
+Tol1_5  1.000  0.512  0.073  0.139
+Tol2_1  0.512  1.000 -0.010  0.286
+Tol3_1  0.073 -0.010  1.000 -0.046
+Tol4_5  0.139  0.286 -0.046  1.000
+
+== EFA 1 factor, 4 items ==
+          ML1
+Tol1_5  0.514
+Tol2_1  0.997
+Tol3_1 -0.009
+Tol4_5  0.287
+
+== CFA (ordinal WLSMV), 4 items ==
+     rhs est.std    se     z pvalue
+1 Tol1_5   0.487 0.055 8.906  0.000
+2 Tol2_1   1.042 0.108 9.672  0.000
+3 Tol3_1   0.006 0.043 0.131  0.896
+4 Tol4_5   0.352 0.052 6.785  0.000
+Heywood check - model-implied residual variances (1 - loading^2):
+[1]  0.763 -0.086  1.000  0.876
+
+== CFA (continuous, robust ML), 4 items -- does the Tol3 conclusion survive without the improper solution? ==
+     rhs est.std    se      z pvalue
+1 Tol1_5   0.495 0.077  6.409  0.000
+2 Tol2_1   1.034 0.130  7.959  0.000
+3 Tol3_1  -0.012 0.042 -0.278  0.781
+4 Tol4_5   0.276 0.056  4.890  0.000
+     lhs    est    se
+5 Tol1_5  0.360 0.038
+6 Tol2_1 -0.029 0.111
+7 Tol3_1  0.997 0.038
+8 Tol4_5  1.157 0.058
+9    Tol  0.117 0.041
+
+== CFA ordinal with Tol2 residual variance constrained (loading <= 1 via equal loadings Tol1=Tol2) ==
+     rhs est.std    se      z pvalue
+1 Tol1_5   0.713 0.019 37.063  0.000
+2 Tol2_1   0.713 0.019 37.063  0.000
+3 Tol3_1   0.031 0.046  0.673  0.501
+4 Tol4_5   0.391 0.046  8.485  0.000
+
+== INTANGIBLE COST block ==
+[1] 0.6088179
+Parallel analysis suggests that the number of factors =  0  and the number of components =  NA 
+parallel analysis nfact: 0 
+
+== MAHALANOBIS ==
+flagged p<.001: 14 of 625 

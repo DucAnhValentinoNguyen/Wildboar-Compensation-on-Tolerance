@@ -1,0 +1,11 @@
+"variable","test","statistic","p_value"
+"age","Wilcoxon",50079.5,0.401274417154735
+"education","Wilcoxon",46353.5,0.383380730416271
+"hh_pop","Wilcoxon",50629.5,0.269598739172759
+"income","Wilcoxon",47025,0.598947916339623
+"agri_prop","Wilcoxon",42911.5,0.0170569753807501
+"total_cropland","Wilcoxon",39420,8.86301431674813e-05
+"total_livestock","Wilcoxon",35600,3.11670891021430e-09
+"hh_asset","Wilcoxon",39075,4.73674756233034e-05
+"gender","Chi-sq",0.998403534935682,0.317697114273043
+"county","Chi-sq",77.0908810807985,1.6326942387657e-18

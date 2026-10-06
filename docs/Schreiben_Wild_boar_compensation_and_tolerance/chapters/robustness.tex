@@ -1,0 +1,114 @@
+RQ3 asks how robust the RQ1/RQ2 findings are to reasonable alternative
+analytical choices, and whether they hold across compensation groups. We
+address this with two independent exercises: a specification-vibration
+analysis across many plausible model variants, and a permutation-based
+multi-group analysis (MGA) comparing compensated and uncompensated
+residents directly. As the StaBLab consulting-methodology notes that guided
+this project put it, the goal of a robustness exercise is not to search for
+significant results, but to examine how sensitive the main findings are to
+different reasonable analytical choices -- trying many specifications and
+reporting only the one that happens to be significant would be a form of
+selective reporting, not robustness testing.
+
+\subsection{Specification vibration}
+\label{robustness:vibration}
+
+We first compared six theoretically motivated model specifications, each
+changing exactly one analytical choice at a time (e.g.\ three-item vs.\
+four-item tolerance, alternative cost definitions, alternative control sets).
+We then went further and estimated every possible combination of 13 binary
+adjustment choices -- $2^{13} = 8{,}192$ models in total -- following the
+vibration-of-effects framework of \citet{Patel2015}, who found that
+observational associations can flip sign (a "Janus effect") under different,
+individually defensible specifications; in their reanalysis of 417
+variables, 31\% showed such a sign flip. Across all 8{,}192 model variants
+estimated here, the compensation participation -- tolerance association
+was negative in every single model (0 Janus effects), and reached
+conventional significance ($p < .05$) in 99.4\% of them. The median
+standardized coefficient across all 8{,}192 models was $\beta = -0.09$,
+consistent with the range obtained across the six theoretically motivated
+specifications ($\beta = -0.128$ to $-0.143$) and with the primary model
+reported in Section~\ref{model:rq1} ($\beta = -0.109$). We additionally
+required every specification to meet minimum measurement-quality bars
+(formative outer loadings $\geq 0.70$ where applicable, variance inflation
+factor $< 3$) and computed the standardized root mean square residual
+(SRMR) across all specifications to confirm that model fit did not degrade
+as adjustments were added. On this evidence, the negative
+compensation--tolerance association is not an artefact of any single
+analytical choice. Appendix~\ref{app:vibration} shows an independent
+re-computation of the same exercise on observed (mean-score) variables.
+
+\subsection{Multi-group analysis}
+\label{robustness:mga}
+
+The second robustness exercise directly compares the structural model
+between the 277 residents with compensation experience (CE0 = 1) and the
+348 without (CE0 = 0), using permutation-based multi-group analysis
+(1{,}000 permutations). A permutation test makes no distributional
+assumption and is appropriate for the two groups' unequal sizes; it tests
+whether path coefficients are statistically different across groups, going
+beyond an earlier, purely visual sub-group comparison. Before comparing any
+path coefficients across groups, we first confirmed that discriminant
+validity (HTMT) holds \emph{within} each group separately: an HTMT violation
+within a subgroup would make that subgroup's path coefficients unreliable,
+and any between-group comparison built on them meaningless. Discriminant
+validity held in both groups.
+
+We ran two versions of the comparison: MGA~1, the full model with all
+background controls; and MGA~2, with sociodemographic controls removed, as a
+confounder check -- if a path difference in MGA~1 disappeared once
+demographics were added back and a \emph{different} path emerged once they
+were removed, that would suggest the demographics were themselves confounding
+the group comparison. In fact, the significant findings in MGA~1 and MGA~2 do
+not overlap, and no previously-significant path becomes non-significant when
+demographics are added or removed; the confounder check passes.
+
+The core finding, robust across both versions, is one of \emph{structural
+invariance}: the model's path coefficients do not differ significantly
+between compensated and uncompensated residents for almost every path,
+including the intangible-cost -- tolerance path, which is significant in both
+groups ($p < .001$ in each). One path is the exception: in MGA~2 (without
+demographic controls), conflict experience with all species has a
+significantly different relationship with tolerance across the two groups
+($\beta = -0.187$ for compensated residents versus $\beta = +0.038$ for
+uncompensated residents; $\Delta\beta = -0.225$, $p = .039$). We interpret
+this as suggestive evidence that compensation experience may amplify the
+conflict--tolerance link: among compensated residents, more conflict
+experience associates with markedly lower tolerance, whereas among
+uncompensated residents the association is close to zero. We supplemented
+the permutation $p$-value, which only tells us whether a difference is
+statistically detectable, with Cohen's $f^2$ effect size, which asks how
+functionally important each predictor is \emph{within} each group
+separately (thresholds: negligible $< 0.02$, small $\geq 0.02$, medium
+$\geq 0.15$, large $\geq 0.35$; \citealp{Cohen1988}). In MGA~2, intangible
+cost's effect size is medium-to-large among uncompensated residents
+($f^2 = 0.258$) and small-to-medium among compensated residents
+($f^2 = 0.103$) -- the same pattern of intangible cost mattering more for
+uncompensated residents holds across both MGA versions and both ways of
+quantifying "matters" (statistical difference and effect size).
+
+Finally, the two groups differ in how much of tolerance the model explains
+overall: $R^2 = 0.423$ for uncompensated residents versus $R^2 = 0.299$ for
+compensated residents in MGA~1. The model captures uncompensated residents'
+tolerance more completely than it captures compensated residents' tolerance.
+Read alongside the mediation result in Section~\ref{model:rq1} -- where the
+measured mediators account for only 18\% of the compensation--tolerance
+association -- this lower $R^2$ points the same direction: compensated
+residents' tolerance appears to be shaped by additional factors this model
+does not measure, plausibly related to their compensation experience itself
+(for example, perceptions of payment adequacy, timeliness, or fairness,
+which our questionnaire only captured for a subset of applicants and could
+not include in the main structural model; Section~\ref{data:quality}) or to
+prior conflict history not captured by our conflict-experience items. This
+is precisely the kind of open question a longitudinal or better-instrumented
+follow-up study, discussed in Section~\ref{discussion}, would be positioned
+to resolve.
+
+To summarize RQ3: the model is structurally stable across compensation
+groups on nearly every path, and the negative compensation--tolerance
+association from RQ1 does not depend on any single analytical choice among
+the 8{,}192 tested. The one genuine group difference we find -- conflict
+experience mattering more for compensated residents -- and the lower
+explanatory power of the model for that same group, both point toward
+unmeasured factors specific to the compensation experience as the most
+promising direction for future work.

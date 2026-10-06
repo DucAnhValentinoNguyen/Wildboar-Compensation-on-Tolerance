@@ -1,0 +1,68 @@
+==================== HOUSEHOLD WEALTH / LIVELIHOOD PCA ====================
+Importance of components:
+                          PC1    PC2    PC3     PC4     PC5    PC6     PC7
+Standard deviation     2.0461 1.3592 1.1158 1.06816 1.04132 1.0018 0.98812
+Proportion of Variance 0.2791 0.1232 0.0830 0.07606 0.07229 0.0669 0.06509
+Cumulative Proportion  0.2791 0.4023 0.4853 0.56133 0.63362 0.7005 0.76562
+                           PC8     PC9    PC10   PC11    PC12    PC13    PC14
+Standard deviation     0.96889 0.89348 0.81753 0.6775 0.63063 0.48264 0.14396
+Proportion of Variance 0.06258 0.05322 0.04456 0.0306 0.02651 0.01553 0.00138
+Cumulative Proportion  0.82820 0.88142 0.92598 0.9566 0.98309 0.99862 1.00000
+                            PC15
+Standard deviation     1.959e-15
+Proportion of Variance 0.000e+00
+Cumulative Proportion  1.000e+00
+
+Loadings (rotation) on PC1-PC3:
+                   PC1    PC2    PC3
+Q10_MaizeArea    0.238  0.402  0.220
+Q10_PotatoArea   0.372 -0.162 -0.089
+Q10_TeeArea     -0.009  0.177 -0.581
+Q10_FruitArea    0.013  0.042  0.181
+Q10_HerbArea     0.086  0.423 -0.128
+Q10_VegArea      0.110  0.191  0.241
+total_cropland   0.291  0.564  0.009
+Q12_Cattle       0.345 -0.192 -0.227
+Q12_Sheep        0.330 -0.297 -0.240
+Q12_Pig          0.267 -0.124  0.235
+Q12_Chicken      0.226 -0.036  0.460
+Q12_Bee          0.125 -0.070  0.082
+total_livestock  0.442 -0.252  0.083
+log_income       0.082  0.022 -0.246
+log_hh_asset     0.364  0.187 -0.222
+
+Correlation of PC1 with log household asset: 0.7454339 
+Correlation of PC1 with log income: 0.1671777 
+null device 
+          1 
+null device 
+          1 
+
+
+==================== CROSS-CHECK PCA: Tolerance items ====================
+Importance of components:
+                          PC1    PC2    PC3    PC4
+Standard deviation     1.2858 1.0182 0.9218 0.6783
+Proportion of Variance 0.4133 0.2592 0.2124 0.1150
+Cumulative Proportion  0.4133 0.6725 0.8850 1.0000
+         PC1    PC2    PC3    PC4
+Tol1_5 0.615 -0.222  0.391  0.647
+Tol2_1 0.666  0.011  0.163 -0.728
+Tol3_1 0.029 -0.902 -0.423 -0.082
+Tol4_5 0.421  0.370 -0.801  0.212
+
+
+==================== CROSS-CHECK PCA: Conflict experience items ====================
+Importance of components:
+                          PC1    PC2    PC3    PC4    PC5    PC6     PC7
+Standard deviation     1.3624 1.1070 0.9876 0.9292 0.8523 0.8479 0.79652
+Proportion of Variance 0.2651 0.1751 0.1394 0.1234 0.1038 0.1027 0.09064
+Cumulative Proportion  0.2651 0.4402 0.5796 0.7029 0.8067 0.9094 1.00000
+          PC1    PC2    PC3
+CP_WB1 -0.479  0.186 -0.147
+CP_WB2 -0.371 -0.223  0.343
+CP_WB3 -0.155  0.576 -0.569
+CP_WB4 -0.418  0.087  0.439
+CP_A1  -0.406 -0.438 -0.175
+CP_A2  -0.410  0.447  0.208
+CP_A3  -0.319 -0.431 -0.520

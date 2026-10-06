@@ -1,0 +1,228 @@
+==================== Wealth index vs Tolerance & Tangible Cost ====================
+
+Call:
+lm(formula = tol_mean_no3 ~ wealth_pc1 + log_income + CE0 + gender + 
+    age + education + site_baoxing, data = df)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-1.26518 -0.38801 -0.07525  0.34671  2.24246 
+
+Coefficients:
+              Estimate Std. Error t value Pr(>|t|)    
+(Intercept)   2.317475   0.242221   9.568  < 2e-16 ***
+wealth_pc1    0.012704   0.013031   0.975 0.330017    
+log_income    0.009793   0.013601   0.720 0.471780    
+CE0          -0.185942   0.051944  -3.580 0.000371 ***
+gender       -0.019904   0.054174  -0.367 0.713437    
+age          -0.004448   0.002607  -1.706 0.088481 .  
+education     0.005345   0.029353   0.182 0.855564    
+site_baoxing  0.064363   0.065296   0.986 0.324661    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.5935 on 617 degrees of freedom
+Multiple R-squared:  0.02938,	Adjusted R-squared:  0.01837 
+F-statistic: 2.668 on 7 and 617 DF,  p-value: 0.01001
+
+
+Wealth index predicting perceived tangible cost (log economic loss):
+
+Call:
+lm(formula = log_econloss ~ wealth_pc1 + CE0 + site_baoxing, 
+    data = df)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-7.3287 -0.2687  0.5068  1.1941  5.4700 
+
+Coefficients:
+             Estimate Std. Error t value Pr(>|t|)    
+(Intercept)   6.74210    0.12682  53.163  < 2e-16 ***
+wealth_pc1    0.28424    0.04747   5.988  3.6e-09 ***
+CE0           0.55121    0.19572   2.816 0.005012 ** 
+site_baoxing -0.87243    0.23213  -3.758 0.000187 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 2.259 on 621 degrees of freedom
+Multiple R-squared:  0.07277,	Adjusted R-squared:  0.06829 
+F-statistic: 16.25 on 3 and 621 DF,  p-value: 3.552e-10
+
+
+
+==================== Direct threat exposure (scared/attacked) ====================
+Prevalence: 
+   0    1 <NA> 
+ 577   48    0 
+
+Call:
+lm(formula = tol_mean_no3 ~ direct_threat_exposure + ic_idx + 
+    IB + CE0 + site_baoxing, data = df)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-1.5298 -0.3635 -0.0371  0.3156  2.3462 
+
+Coefficients:
+                       Estimate Std. Error t value Pr(>|t|)    
+(Intercept)             1.86974    0.06346  29.465  < 2e-16 ***
+direct_threat_exposure  0.02752    0.08329   0.330  0.74119    
+ic_idx                 -0.30576    0.03729  -8.199 1.40e-15 ***
+IB                      0.10684    0.02202   4.851 1.55e-06 ***
+CE0                    -0.13905    0.04735  -2.937  0.00344 ** 
+site_baoxing            0.10717    0.05656   1.895  0.05858 .  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.5485 on 619 degrees of freedom
+Multiple R-squared:  0.1684,	Adjusted R-squared:  0.1616 
+F-statistic: 25.06 on 5 and 619 DF,  p-value: < 2.2e-16
+
+
+Does direct threat exposure predict Intangible Cost (IC1)?
+
+Call:
+lm(formula = IC1 ~ direct_threat_exposure + site_baoxing, data = df)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-2.7095 -0.5934  0.2905  0.2905  0.4066 
+
+Coefficients:
+                        Estimate Std. Error t value Pr(>|t|)    
+(Intercept)             4.709481   0.024327 193.591   <2e-16 ***
+direct_threat_exposure  0.003143   0.077562   0.041   0.9677    
+site_baoxing           -0.116105   0.047323  -2.453   0.0144 *  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.5141 on 622 degrees of freedom
+Multiple R-squared:  0.00964,	Adjusted R-squared:  0.006456 
+F-statistic: 3.027 on 2 and 622 DF,  p-value: 0.04917
+
+
+
+==================== Perceived hunting prevalence ====================
+              
+               No compensation With compensation
+  Never                    290               168
+  Rarely                    16                39
+  Possible                  12                10
+  Occasionally              11                31
+  Often                      2                16
+
+Call:
+lm(formula = tol_mean_no3 ~ hunted_ordinal + site_baoxing, data = df)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-1.18638 -0.41809 -0.08476  0.25552  2.24857 
+
+Coefficients:
+               Estimate Std. Error t value Pr(>|t|)    
+(Intercept)     2.19697    0.04422  49.685  < 2e-16 ***
+hunted_ordinal -0.11221    0.03105  -3.614 0.000327 ***
+site_baoxing    0.21384    0.07825   2.733 0.006470 ** 
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.5935 on 592 degrees of freedom
+  (30 observations deleted due to missingness)
+Multiple R-squared:  0.0217,	Adjusted R-squared:  0.01839 
+F-statistic: 6.565 on 2 and 592 DF,  p-value: 0.001513
+
+
+
+==================== Encounter reaction ~ tolerance & attitudes ====================
+
+     Evacuate Avoid/coexist    Drive away 
+          289            40           294 
+Call:
+multinom(formula = reaction ~ tol_mean_no3 + ic_idx + IB + direct_threat_exposure + 
+    site_baoxing, data = df, trace = FALSE)
+
+Coefficients:
+           (Intercept) tol_mean_no3     ic_idx         IB
+Evacuate      3.677798   -0.5242416 0.16173825 -0.1289503
+Drive away    3.593651   -0.5593554 0.07792239 -0.1633668
+           direct_threat_exposure site_baoxing
+Evacuate              -0.05662367   -0.9258357
+Drive away             0.73690046   -0.1367368
+
+Std. Errors:
+           (Intercept) tol_mean_no3    ic_idx        IB direct_threat_exposure
+Evacuate     0.7396505    0.2798833 0.2878300 0.1729735              0.7861481
+Drive away   0.7384376    0.2791746 0.2871482 0.1725765              0.7574616
+           site_baoxing
+Evacuate      0.4050003
+Drive away    0.3944920
+
+Residual Deviance: 1070.43 
+AIC: 1094.43 
+
+p-values:
+           (Intercept) tol_mean_no3 ic_idx     IB direct_threat_exposure
+Evacuate             0       0.0611 0.5742 0.4560                 0.9426
+Drive away           0       0.0451 0.7861 0.3438                 0.3306
+           site_baoxing
+Evacuate         0.0223
+Drive away       0.7289
+
+
+==================== Multi-species conflict exposure ====================
+
+  0   1 
+439 186 
+
+Call:
+lm(formula = tol_mean_no3 ~ multispecies_conflict + n_species_conflict + 
+    site_baoxing, data = df)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-1.15997 -0.42665 -0.09332  0.24002  2.33502 
+
+Coefficients:
+                      Estimate Std. Error t value Pr(>|t|)    
+(Intercept)            2.14407    0.05625  38.115   <2e-16 ***
+multispecies_conflict -0.00938    0.10274  -0.091    0.927    
+n_species_conflict    -0.05076    0.04942  -1.027    0.305    
+site_baoxing           0.06666    0.07193   0.927    0.354    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.5992 on 621 degrees of freedom
+Multiple R-squared:  0.004507,	Adjusted R-squared:  -0.0003023 
+F-statistic: 0.9371 on 3 and 621 DF,  p-value: 0.4223
+
+
+
+==================== Mitigation strategy adoption clusters ====================
+Average silhouette width for k=2..5: 0.342 0.377 0.449 0.502 
+Chosen k = 5 
+  cluster Barriers Disruption HumanGuard CropChange AnimalGuard Relocation/Hunt
+1       1        0  0.0000000  0.3869048 0.07738095   0.1726190     0.005952381
+2       2        0  1.0000000  0.0000000 0.10447761   0.1343284     0.029850746
+3       3        1  0.6379310  0.0000000 0.04310345   0.1896552     0.017241379
+4       4        0  1.0000000  1.0000000 0.09154930   0.3028169     0.014084507
+5       5        1  0.8181818  1.0000000 0.13636364   0.3333333     0.022727273
+  Resettlement
+1  0.000000000
+2  0.029850746
+3  0.000000000
+4  0.007042254
+5  0.022727273
+
+Adoption rate (n strategies used) by cluster:
+# A tibble: 5 × 4
+  mitig_cluster     n mean_PE_count mean_tol
+  <fct>         <int>         <dbl>    <dbl>
+1 1               168         0.643     2.08
+2 2                67         1.30      2.17
+3 3               116         1.89      2.03
+4 4               142         2.42      2.15
+5 5               132         3.33      2.01
+               Df Sum Sq Mean Sq F value Pr(>F)
+mitig_cluster   4   2.24  0.5589   1.563  0.183
+Residuals     620 221.71  0.3576               
