@@ -1,0 +1,8 @@
+# data, results and logs stay local
+data/
+latest_analysis/output/
+latest_analysis/logs/
+*.rds
+.Rproj.user
+.Rhistory
+.RData
