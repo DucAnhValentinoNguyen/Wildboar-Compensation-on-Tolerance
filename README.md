@@ -5,15 +5,27 @@ Understanding the compensation policy impact on local resident’s tolerance tow
 
 https://ducanhvalentinonguyen.com/wildboar-compensation-analysis-2026-09-17.html
 
-## Fresh analysis release
+## Reproducing the analysis
 
-The rebuilt R-first pipeline is documented in [docs/PLAN.md](docs/PLAN.md) and [docs/ANALYSIS_DECISIONS.md](docs/ANALYSIS_DECISIONS.md). It preserves the original workbook, creates the audited derived dataset under `data/derived/`, and writes all tables, figures, model objects, reports, slides, and logs under `results/fresh/`.
-
-From the project root:
+The code that produces every table, figure, and number of the analysis is on the branch
+[`final-analysis`](https://github.com/DucAnhValentinoNguyen/Wildboar-Compensation-on-Tolerance/tree/final-analysis).
+To check the results yourself:
 
 ```bash
-Rscript run_project.R --restore   # first run; uses/restores the local R library
-Rscript run_project.R             # targets pipeline (rebuilds changed stages)
-Rscript run_project.R --render    # report, PDF, PowerPoint, speaker notes
-Rscript run_project.R --verify    # reproducibility/acceptance checks
+git clone --branch final-analysis https://github.com/DucAnhValentinoNguyen/Wildboar-Compensation-on-Tolerance.git
+cd Wildboar-Compensation-on-Tolerance
+
+# 1. Put the survey data file at data/3_Data.xlsx (sheets "Input Data" and "Raw data").
+#    The data are not in the repository: they are subject to usage restrictions agreed with the project partner.
+
+# 2. Install the R packages (R 4.5; Python 3 with pandas and openpyxl is also needed)
+Rscript latest_analysis/install_packages.R
+
+# 3. Run the whole analysis (about an hour on 4 or more cores)
+bash latest_analysis/run_all.sh
 ```
+
+The results are written to `latest_analysis/output/` (tables, figures, fitted models), with one log per
+script in `latest_analysis/logs/rerun/`. Random steps use fixed seeds, so the numbers match those of the
+analysis; the one exception is the permutation p-values of the multi-group analysis, which vary slightly
+between runs. The README on the `final-analysis` branch lists every script and what it produces.
