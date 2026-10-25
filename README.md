@@ -53,7 +53,7 @@ slightly between runs.
 | `16_report_figures.R` | Descriptive report figures, covariate screen, vibration of effects | Model, appendix |
 | `17_tolerance_formative_check.R` | Tolerance as reflective vs formative | Measurement |
 | `18_log_transform_check.R` | Effect of the log transformation | Data, appendix |
-| `19_ce0_direction_check.R` | Who applies for compensation (Wilcoxon, logistic regression) | Data |
+| `19_ce0_direction_check.R` | Who applies for compensation (Wilcoxon, logistic regression, and whether the scale of the money variables matters) | Data |
 | `21_verify_report_claims.R` | Independent recomputation of descriptive and reliability numbers | all |
 | `22_moderation_with_controls.R` | RQ2 moderation with the full control set | Model |
 | `23_causal_role_models.R` | RQ1: compensation-tolerance association under four adjustment sets, mediation, DAG check | Model |
