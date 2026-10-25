@@ -62,7 +62,7 @@ cand <- c(in_np = "Lives inside national park", gender = "Gender", age = "Age", 
   IC1 = "General attitude to wild boar", IC2_1 = "Word description 1 (rating)", IC2_2 = "Word description 2 (rating)", IC2_3 = "Word description 3 (rating)",
   IC2_DescriptiveAttitude = "Mean word rating", IB = "Intangible benefit (ecological value)", PE = "Prevention effectiveness",
   CE0 = "Compensation participation", CA1 = "Lowest accepted compensation (%)", CA2 = "Expected compensation (%)", CA3 = "Insurance willingness to pay",
-  PS1 = "Policy support: institutions", PS2 = "Policy support: knowledge", site = "Survey site (Baoxing)")
+  PS1 = "Policy dependency: institutions reported to", PS2 = "Policy dependency: information channels", site = "Survey site (Baoxing)")
 rk <- function(v) rank(v, na.last = "keep")
 screen <- bind_rows(lapply(names(cand), function(v) {
   d <- data.frame(y = base$tol, x = base[[v]], site = base$site); d <- d[complete.cases(d), ]

@@ -41,7 +41,7 @@ fit_h <- function(controls) {
   m <- estimate_pls(df, mm, sm, missing = mean_replacement, maxIt = 500)
   b <- bootstrap_model(m, nboot = 5000, cores = 4, seed = 20260920)
   p95 <- as.data.frame(summary(b, alpha = 0.05)$bootstrapped_paths); p90 <- as.data.frame(summary(b, alpha = 0.10)$bootstrapped_paths)
-  list(model = m, p95 = p95, p90 = p90)
+  list(model = m, p95 = p95, p90 = p90, boot = b)
 }
 main <- fit_h(c("Gender","Age","Education","Income","HHAsset","InNP","Site"))
 orig <- fit_h(c("Gender","Age","Education","Income","HHAsset"))
@@ -95,6 +95,9 @@ verdicts <- function(fit, label) {
   out$est <- fit$p95[key, "Original Est."]; out$lo <- fit$p95[key, "2.5% CI"]; out$hi <- fit$p95[key, "97.5% CI"]
   out$p <- fit$p95[key, "Bootstrap P Val"]; out$lo90 <- fit$p90[key, "5% CI"]; out$hi90 <- fit$p90[key, "95% CI"]
   dir <- out$sign != 0
+  ## seminr's bootstrap p-value is twice the share of resamples on the other side of zero; record that share so that
+  ## rows whose interval is far from zero but whose p-value is not small (a long tail in the resamples) can be explained
+  out$share_opposite <- mapply(function(f, t, e) mean(sign(fit$boot$boot_paths[f, t, ]) != sign(e)), out$from, out$to, out$est)
   out$q <- NA; out$q[dir] <- p.adjust(out$p[dir], "BH")
   out$verdict <- ifelse(!dir,
     ifelse(out$lo90 > -0.1 & out$hi90 < 0.1, "Supported (equivalence)", ifelse(out$lo > 0 | out$hi < 0, "Not supported", "Inconclusive")),

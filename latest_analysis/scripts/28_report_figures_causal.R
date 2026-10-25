@@ -132,7 +132,7 @@ wc$label <- factor(sprintf("%s (n = %d)", ifelse(wc$county == "Pooled", "Both co
 f6 <- ggplot(wc, aes(est, label)) + geom_vline(xintercept = 0, linetype = 2, colour = "grey50") +
   geom_errorbar(aes(xmin = lo, xmax = hi), orientation = "y", width = 0.2, linewidth = 0.8, colour = col_neg) + geom_point(size = 3, colour = col_neg) +
   labs(title = "The compensation gap in tolerance, within each county",
-       subtitle = "Adjusted difference (applicants minus non-applicants) in standardised tolerance, primary control set, 95% robust CI",
+       subtitle = "Adjusted difference in tolerance, applicants minus non-applicants (primary control set); 95% robust CI",
        x = "Difference in tolerance (standard deviations)", y = NULL) + th
 save(f6, "fig_within_county.png", 8.5, 3.6)
 

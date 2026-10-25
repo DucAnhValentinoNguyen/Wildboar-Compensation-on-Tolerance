@@ -1,7 +1,7 @@
 # Compensation and tolerance towards wild boar: analysis code
 
 Code for the consulting project report *Understanding the compensation policy impact on local
-resident's tolerance towards wild boars in Giant Panda National Park, China* (LMU Munich,
+residents' tolerance towards wild boars in Giant Panda National Park, China* (LMU Munich,
 Statistical Consulting).
 
 ## What is in this repository
