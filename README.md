@@ -32,9 +32,7 @@ bash latest_analysis/run_all.sh      # about an hour on 4+ cores; one log per sc
 ```
 
 Every script reads its inputs from and writes its results to `latest_analysis/output/` (tables,
-figures, fitted models); the folder is created by `run_all.sh`. Random steps use fixed seeds, except
-the permutations of the multi-group analysis in `09_multigroup.R`, whose p-values therefore vary
-slightly between runs.
+figures, fitted models); the folder is created by `run_all.sh`. Random steps use fixed seeds.
 
 ## Scripts
 
@@ -47,7 +45,6 @@ slightly between runs.
 | `05_pca.R` | Household wealth index | Measurement |
 | `06_plssem_core.R` | Full PLS-SEM of the Wildlife Tolerance Model | Model, appendix |
 | `08_moderation.R` | RQ2: compensation x cost/benefit interactions | Model |
-| `09_multigroup.R`, `10_robustness_specs.R`, `14_subgroup_reconcile.R` | Multi-group and robustness re-runs of the structural model (see the note below) | Not Section 5 |
 | `11_regression_crosscheck.R` | Regression cross-check with robust standard errors | Model, appendix |
 | `12_extended_analyses.R`, `13_path_diagram.R` | Extra questionnaire fields, path diagram | Appendix |
 | `16_report_figures.R` | Descriptive report figures, covariate screen, vibration of effects | Model, appendix |
@@ -67,15 +64,8 @@ slightly between runs.
 
 Scripts 23 onwards depend on the model objects saved by earlier scripts, so run them in order.
 
-## What this code does and does not reproduce
+## What this code reproduces
 
-The scripts reproduce the exploratory data analysis, measurement, RQ1 and RQ2 parts of the report
-(Sections 2 to 4, the discussion, and the appendix): every table, figure, and number quoted there is
-written to `latest_analysis/output/` by one of the scripts above, and `21_verify_report_claims.R`
-recomputes the descriptive and reliability figures independently.
-
-They do **not** reproduce Section 5 of the report (RQ3, robustness and multi-group analysis), which was
-written by other team members. Its figures (the vibration-of-effects analysis over 8,192 adjustment
-sets, and the Cohen's f-squared values) are not produced by `09_multigroup.R`, `10_robustness_specs.R`,
-or `14_subgroup_reconcile.R`, which are related but different re-runs. The vibration-of-effects analysis
-in the appendix of the report (`16_report_figures.R`) is a separate recomputation on observed scores.
+The scripts reproduce the exploratory data analysis, measurement, RQ1 and RQ2 parts of the report: every
+table, figure, and number quoted there is written to `latest_analysis/output/` by one of the scripts above,
+and `21_verify_report_claims.R` recomputes the descriptive and reliability figures independently.
