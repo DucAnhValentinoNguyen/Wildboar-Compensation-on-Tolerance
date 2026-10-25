@@ -11,6 +11,11 @@ Statistical Consulting).
 | `latest_analysis/scripts/` | One numbered script per analysis stage (table below) |
 | `latest_analysis/run_all.sh` | Runs all scripts in order |
 | `latest_analysis/install_packages.R` | Installs the R packages |
+| `slides/Hypothesis_List.pptx` | The project partner's 36 hypotheses (source of the appendix table of the report) |
+| `slides/Final_Presentation.pdf` | The presentation delivered to the project partner (22 September 2026) |
+
+The slides are included for reference. The presentation predates the final analysis: where it and the
+report differ (in particular on the role of the cost constructs as mediators), the report is current.
 
 The survey data are **not** included; they are subject to the usage restrictions agreed with the
 project partner (Mengxi Kou, Rachel Carson Center, LMU Munich). To reproduce the analysis, place the
@@ -42,7 +47,7 @@ slightly between runs.
 | `05_pca.R` | Household wealth index | Measurement |
 | `06_plssem_core.R` | Full PLS-SEM of the Wildlife Tolerance Model | Model, appendix |
 | `08_moderation.R` | RQ2: compensation x cost/benefit interactions | Model |
-| `09_multigroup.R`, `10_robustness_specs.R`, `14_subgroup_reconcile.R` | RQ3: multi-group analysis and robustness specifications | Robustness |
+| `09_multigroup.R`, `10_robustness_specs.R`, `14_subgroup_reconcile.R` | Multi-group and robustness re-runs of the structural model (see the note below) | Not Section 5 |
 | `11_regression_crosscheck.R` | Regression cross-check with robust standard errors | Model, appendix |
 | `12_extended_analyses.R`, `13_path_diagram.R` | Extra questionnaire fields, path diagram | Appendix |
 | `16_report_figures.R` | Descriptive report figures, covariate screen, vibration of effects | Model, appendix |
@@ -57,5 +62,20 @@ slightly between runs.
 | `26_bias_analysis.R` | Bias analysis for unmeasured confounding (robustness value, E-value) | Discussion |
 | `27_latent_mediators.R` | Measurement-error sensitivity for the candidate mediators | Discussion |
 | `28_report_figures_causal.R` | Figures of the causal-role analysis | Model, discussion |
+| `29_decision_alternatives.R` | The compensation estimate under each alternative we did not choose (decision log) | Introduction, data, measurement, discussion |
+| `30_report_figure_alternatives.R` | Figure of those alternatives | Discussion |
 
 Scripts 23 onwards depend on the model objects saved by earlier scripts, so run them in order.
+
+## What this code does and does not reproduce
+
+The scripts reproduce the exploratory data analysis, measurement, RQ1 and RQ2 parts of the report
+(Sections 2 to 4, the discussion, and the appendix): every table, figure, and number quoted there is
+written to `latest_analysis/output/` by one of the scripts above, and `21_verify_report_claims.R`
+recomputes the descriptive and reliability figures independently.
+
+They do **not** reproduce Section 5 of the report (RQ3, robustness and multi-group analysis), which was
+written by other team members. Its figures (the vibration-of-effects analysis over 8,192 adjustment
+sets, and the Cohen's f-squared values) are not produced by `09_multigroup.R`, `10_robustness_specs.R`,
+or `14_subgroup_reconcile.R`, which are related but different re-runs. The vibration-of-effects analysis
+in the appendix of the report (`16_report_figures.R`) is a separate recomputation on observed scores.
