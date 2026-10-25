@@ -27,5 +27,4 @@ bash latest_analysis/run_all.sh
 
 The results are written to `latest_analysis/output/` (tables, figures, fitted models), with one log per
 script in `latest_analysis/logs/rerun/`. Random steps use fixed seeds, so the numbers match those of the
-analysis; the one exception is the permutation p-values of the multi-group analysis, which vary slightly
-between runs. The README on the `final-analysis` branch lists every script and what it produces.
+analysis. The README on the `final-analysis` branch lists every script and what it produces.
